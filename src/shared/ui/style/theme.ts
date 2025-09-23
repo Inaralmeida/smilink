@@ -3,13 +3,13 @@ import { createTheme } from "@mui/material/styles";
 export const theme = createTheme({
   palette: {
     primary: {
-      main: "#037F8C", // cor principal
+      main: "#037F8C",
       dark: "#045159",
       light: "#03A6A6",
       contrastText: "#fff",
     },
     secondary: {
-      main: "#E7F2F4", // secundária
+      main: "#E7F2F4",
       dark: "#045159",
       light: "#037F8C",
       contrastText: "#037F8C",
@@ -38,8 +38,8 @@ export const theme = createTheme({
       100: "#F2F2F2",
     },
     background: {
-      default: "#F2F2F2", // fundo geral
-      paper: "#FFFFFF", // cartões e superfícies
+      default: "#F2F2F2",
+      paper: "#FFFFFF",
     },
     text: {
       primary: "#333A3B",
@@ -53,7 +53,7 @@ export const theme = createTheme({
     button: { textTransform: "none", fontWeight: 600 },
   },
   shape: {
-    borderRadius: 8, // bordas arredondadas padrão
+    borderRadius: 8,
   },
   components: {
     MuiButton: {
