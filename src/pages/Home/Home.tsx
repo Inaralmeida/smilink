@@ -1,12 +1,7 @@
 import { Typography } from "@mui/material";
-import Layout from "../../shared/components/Layout/Layout";
 
 const Home = () => {
-  return (
-    <Layout>
-      <Typography>Home</Typography>
-    </Layout>
-  );
+  return <Typography>Home</Typography>;
 };
 
 export default Home;
