@@ -1,14 +1,17 @@
-import { type ReactNode } from "react";
+import { Suspense } from "react";
+import { Outlet } from "react-router-dom";
 import Header from "../Header/Header";
 import MainContainer from "../MainContainer/MainContainer";
 import { LayoutContainer } from "./layout.style";
 
-const Layout = ({ children }: { children: ReactNode }) => {
+const Layout = () => {
   return (
     <LayoutContainer>
       <Header />
       <MainContainer>
-        <div>{children}</div>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Outlet />
+        </Suspense>
       </MainContainer>
     </LayoutContainer>
   );
