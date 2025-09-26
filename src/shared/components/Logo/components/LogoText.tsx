@@ -1,4 +1,4 @@
-import { Typography } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 import { SIZE_LOGO } from "../../../../domain/enums/sizeLogo";
 
 type TLogoTextProps = {
@@ -7,10 +7,13 @@ type TLogoTextProps = {
 };
 
 const LogoText = ({ color, size }: TLogoTextProps) => {
+  const theme = useTheme();
+  const primary = theme.palette.primary;
+  const colorBlue = color === "blue" ? primary.main : primary.contrastText;
   return (
     <Typography
       variant="body2"
-      color={color}
+      color={colorBlue}
       fontSize={SIZE_LOGO[size]}
       style={{
         fontFamily: "Montserrat",
