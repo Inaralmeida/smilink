@@ -9,7 +9,7 @@ export type TUserProps = {
   cpf: string;
   senha: string;
   celular: string;
-  dataNascimento: string; // ISO string
+  dataNascimento: string;
   fotoPerfil: string;
   role: TRole;
   _raw?: {

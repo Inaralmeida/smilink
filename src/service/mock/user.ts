@@ -13,7 +13,7 @@ export const MOCK_USER: TUserProps[] = [
     dataNascimento: "1970-04-15T01:56:47.090Z",
     fotoPerfil:
       "https://avatars.githubusercontent.com/u/71791646?s=400&u=ce6cce9cc4a4a8c303e7a5bb23ac1f69b73ceb3c&v=4",
-    role: "paciente",
+    role: "profissional",
     _raw: {
       nat: "",
       registered: {

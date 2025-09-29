@@ -1,3 +1,4 @@
+import type { TRole } from "../../domain/types/typeRoles";
 import type { TUserProps } from "../../domain/types/users";
 
 export const getUser = () => {
@@ -24,4 +25,15 @@ export const setToken = (token: string) => {
 
 export const clearToken = () => {
   localStorage.removeItem("token");
+};
+
+export const setRole = (role: TRole) => {
+  localStorage.setItem("role", role);
+};
+
+export const getRole = (): TRole => {
+  const role = localStorage.getItem("role")
+    ? localStorage.getItem("role")
+    : "paciente";
+  return role as TRole;
 };

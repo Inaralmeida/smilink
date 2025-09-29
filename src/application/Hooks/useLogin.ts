@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../domain/constants/Routes";
 import type { TResponseLogin } from "../../domain/types/ResponseLogin";
-import { setToken } from "../../service/http/storage";
+import { setRole, setToken } from "../../service/http/storage";
 import { UserService } from "../../service/http/UserService";
 import { useAuth } from "../context/AuthContext";
 
@@ -36,7 +36,6 @@ const useLogin = () => {
 
   const handleLogin = (data: any) => {
     const { email, password } = data;
-    console.log(data);
 
     setLoading(true);
     const user = new UserService();
@@ -46,6 +45,7 @@ const useLogin = () => {
       setError(response.type, { message: response.message });
     } else {
       const token = handleAuthentication();
+      setRole(response.user?.role || "paciente");
       if (!token) return;
       navigate(`${ROUTES.home}/${response.user?.role}`);
       clearErrors();

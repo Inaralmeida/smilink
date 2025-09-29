@@ -6,7 +6,6 @@ import { Controller } from "react-hook-form";
 import useLogin from "../../application/Hooks/useLogin";
 import { LOGIN_FIELDS } from "../../domain/fieldsForms/login";
 import { Logo } from "../../shared/components";
-import TypeAccessText from "../../shared/components/TypeAccessText/TypeAccessText";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +40,6 @@ const Login = () => {
           mb={"24px"}
         >
           <Logo type="complete" color="blue" size="md" />
-          <TypeAccessText type="admin" />
         </Box>
         <form
           style={{

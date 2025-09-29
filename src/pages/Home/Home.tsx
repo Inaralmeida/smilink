@@ -1,7 +1,9 @@
-import { Typography } from "@mui/material";
+import Dashboard from "../../module/dashboard/Dashboard";
+import { getRole } from "../../service/http/storage";
 
 const Home = () => {
-  return <Typography>Home</Typography>;
+  const role = getRole();
+  return <Dashboard role={role} />;
 };
 
 export default Home;
