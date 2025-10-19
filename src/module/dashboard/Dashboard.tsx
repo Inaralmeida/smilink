@@ -1,4 +1,4 @@
-import { Grid, Paper, Typography, useTheme } from "@mui/material";
+import { Box, Grid, Typography, useTheme } from "@mui/material";
 import {
   Area,
   AreaChart,
@@ -19,9 +19,9 @@ import {
 import { dashboardMock } from "../../service/mock/dashboardMock";
 
 const mockData = [
-  { name: "Jan", realizadas: 40, canceladas: 10, faltas: 5 },
-  { name: "Fev", realizadas: 50, canceladas: 8, faltas: 7 },
-  { name: "Mar", realizadas: 70, canceladas: 15, faltas: 3 },
+  { name: "Agosto", Realizadas: 40, Canceladas: 10, Faltas: 5 },
+  { name: "Setembro", Realizadas: 50, Canceladas: 8, Faltas: 7 },
+  { name: "Outubro", Realizadas: 70, Canceladas: 15, Faltas: 3 },
 ];
 
 const pieData = [
@@ -40,8 +40,8 @@ const Dashboard = ({
 
   const COLORS = [
     theme.palette.primary.main,
+    theme.palette.warning.dark,
     theme.palette.error.main,
-    theme.palette.warning.main,
     theme.palette.success.main,
   ];
 
@@ -50,8 +50,10 @@ const Dashboard = ({
   return (
     <Grid container spacing={2}>
       {section.items.map((item) => (
-        <Grid item xs={12} md={6} lg={4} key={item.id}>
-          <Paper elevation={3} style={{ padding: 16 }}>
+        <Grid item key={item.id} size={{ xs: 12, sm: 12, md: 6 }}>
+          <Box
+            sx={{ width: "100%", padding: "16px", backgroundColor: "white" }}
+          >
             <Typography variant="h6" gutterBottom color="text.primary">
               {item.name}
             </Typography>
@@ -66,18 +68,18 @@ const Dashboard = ({
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="realizadas"
+                    dataKey="Realizadas"
                     stroke={theme.palette.primary.main}
                   />
                   <Line
                     type="monotone"
-                    dataKey="canceladas"
+                    dataKey="Canceladas"
                     stroke={theme.palette.error.main}
                   />
                   <Line
                     type="monotone"
-                    dataKey="faltas"
-                    stroke={theme.palette.warning.main}
+                    dataKey="Faltas"
+                    stroke={theme.palette.warning.dark}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -91,9 +93,9 @@ const Dashboard = ({
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="realizadas" fill={theme.palette.primary.main} />
-                  <Bar dataKey="canceladas" fill={theme.palette.error.main} />
-                  <Bar dataKey="faltas" fill={theme.palette.warning.main} />
+                  <Bar dataKey="Realizadas" fill={theme.palette.primary.dark} />
+                  <Bar dataKey="Canceladas" fill={theme.palette.error.main} />
+                  <Bar dataKey="Faltas" fill={theme.palette.warning.dark} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -108,13 +110,13 @@ const Dashboard = ({
                   <Legend />
                   <Area
                     type="monotone"
-                    dataKey="realizadas"
+                    dataKey="Realizadas"
                     stroke={theme.palette.primary.main}
                     fill={theme.palette.primary.light}
                   />
                   <Area
                     type="monotone"
-                    dataKey="canceladas"
+                    dataKey="Canceladas"
                     stroke={theme.palette.error.main}
                     fill={theme.palette.error.light}
                   />
@@ -145,7 +147,7 @@ const Dashboard = ({
                 </PieChart>
               </ResponsiveContainer>
             )}
-          </Paper>
+          </Box>
         </Grid>
       ))}
     </Grid>

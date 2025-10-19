@@ -10,5 +10,5 @@ export const ROUTES = {
   pacientes: "/pacientes",
   profissionais: "/profissionais",
   estoque: "/estoque",
-  notFound: "/404",
+  notFound: "*",
 };

@@ -3,6 +3,7 @@ import { BottomNavigation, Box, ToggleButton } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useState } from "react";
 import { ItensHeaderNavigation } from "../../../domain/constants/ItensHeaderNavigation";
+import { ROUTES } from "../../../domain/constants/Routes";
 import type { TRole } from "../../../domain/types/typeRoles";
 import IconLink from "../IconLink/IconLink";
 import Logo from "../Logo/Logo";
@@ -12,7 +13,6 @@ import * as S from "./Header.styles";
 
 const Header = ({ role }: { role: TRole }) => {
   const isMobile = useMediaQuery("(max-width: 600px)");
-
   const [showMenu, setShowMenu] = useState(false);
   const [currentPage, setcurrentPage] = useState("");
   return (
@@ -62,7 +62,9 @@ const Header = ({ role }: { role: TRole }) => {
                   Icon={item.icon}
                   label={item.name}
                   value={item.name}
-                  link={item.path}
+                  link={
+                    item.name === "Home" ? `${ROUTES.home}/${role}` : item.path
+                  }
                 />
               )}
             </>
@@ -70,7 +72,7 @@ const Header = ({ role }: { role: TRole }) => {
         </BottomNavigation>
       )}
 
-      <MenuSettings />
+      {!isMobile ? <MenuSettings /> : isMobile && showMenu && <MenuSettings />}
     </S.HeaderContainer>
   );
 };

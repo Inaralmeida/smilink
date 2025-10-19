@@ -24,7 +24,7 @@ type ItemHeaderNavigation = {
 export const ItensHeaderNavigation: ItemHeaderNavigation[] = [
   {
     name: "Home",
-    path: ROUTES.home,
+    path: `${ROUTES.home}`,
     permission: { admin: true, paciente: true, profissional: true },
     icon: HomeIcon,
   },

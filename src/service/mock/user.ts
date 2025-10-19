@@ -13,7 +13,7 @@ export const MOCK_USER: TUserProps[] = [
     dataNascimento: "1970-04-15T01:56:47.090Z",
     fotoPerfil:
       "https://avatars.githubusercontent.com/u/71791646?s=400&u=ce6cce9cc4a4a8c303e7a5bb23ac1f69b73ceb3c&v=4",
-    role: "profissional",
+    role: "admin",
     _raw: {
       nat: "",
       registered: {
@@ -44,16 +44,16 @@ export const MOCK_USER: TUserProps[] = [
   },
   {
     id: "3929f874-3412-4a0f-b602-172f524e74ee",
-    nome: "Benevenuto",
+    nome: "Paciente",
     sobrenome: "da Mota",
     apelido: "benevenuto.damota",
-    email: "benevenuto.damota@example.com",
+    email: "paciente@gmail.com",
     cpf: "20638361834",
-    senha: "sean",
+    senha: "12345678",
     celular: "+8135659413",
     dataNascimento: "1963-04-28T22:25:13.723Z",
     fotoPerfil: "https://randomuser.me/api/portraits/men/52.jpg",
-    role: "admin",
+    role: "paciente",
     _raw: {
       nat: "",
       registered: {
@@ -64,16 +64,16 @@ export const MOCK_USER: TUserProps[] = [
   },
   {
     id: "1b9ffe8c-1c75-448d-9699-9f725ed9f920",
-    nome: "Adira",
+    nome: "Adira profissional",
     sobrenome: "Pereira",
     apelido: "adira.pereira",
-    email: "adira.pereira@example.com",
+    email: "profissional@gmail.com",
     cpf: "62191878229",
-    senha: "front242",
+    senha: "12345678",
     celular: "+6624093859",
     dataNascimento: "1951-11-16T09:52:29.217Z",
     fotoPerfil: "https://randomuser.me/api/portraits/women/58.jpg",
-    role: "paciente",
+    role: "profissional",
     _raw: {
       nat: "",
       registered: {
