@@ -40,6 +40,7 @@ const MenuSettings = () => {
           label="Perfil"
           value="Perfil"
           link=""
+          color="white"
           onClick={handleClick}
           aria-controls={open ? "Configurações" : undefined}
           aria-haspopup="true"
@@ -109,4 +110,3 @@ const MenuSettings = () => {
 };
 
 export default MenuSettings;
-

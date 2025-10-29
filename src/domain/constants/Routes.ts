@@ -4,7 +4,12 @@ export const ROUTES = {
     login: "/auth/login",
     register: "/auth/register",
   },
-  consultas: "/consultas",
+  consultas: {
+    base: "/consultas",
+    nova: ":nova",
+    detalhes: "/consultas/detalhes",
+    editar: "/consultas/editar",
+  },
   agendar: "/agendar",
   cadastro: "/cadastro",
   pacientes: "/pacientes",

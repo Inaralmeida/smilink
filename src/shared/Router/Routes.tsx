@@ -10,6 +10,8 @@ import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute"; // 1. IMPORTE O NOVO COMPONENTE
 import { AuthProvider } from "../../application/context/AuthContext";
 import Login from "../../pages/login/Login";
+import Consultas from "../../module/Consultas";
+import NovaConsulta from "../../module/Consultas/NovaConsulta";
 
 const Routes = () => {
   return (
@@ -24,6 +26,12 @@ const Routes = () => {
                 <Route element={<Layout />}>
                   <Route path={ROUTES.home} element={<Home />} />
                   <Route path={ROUTES.pacientes} element={<Pacientes />} />
+                  <Route path={ROUTES.consultas.base} element={<Consultas />}>
+                    <Route
+                      path={ROUTES.consultas.nova}
+                      element={<NovaConsulta />}
+                    />
+                  </Route>
                   <Route
                     path="*"
                     element={<Typography variant="h1">404</Typography>}
