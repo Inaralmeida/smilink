@@ -7,33 +7,42 @@ import { Home, Pacientes } from "../../pages";
 import { Layout } from "../components";
 import { theme } from "../ui/style/theme";
 import PrivateRoute from "./PrivateRoute";
+import PublicRoute from "./PublicRoute"; // 1. IMPORTE O NOVO COMPONENTE
+import { AuthProvider } from "../../application/context/AuthContext";
+import Login from "../../pages/login/Login";
+
 const Routes = () => {
   return (
     <MuiThemeProvider theme={theme}>
       <SCThemeProvider theme={theme}>
         <BrowserRouter>
           <CssBaseline />
-
-          <Switch>
-            <Route element={<PrivateRoute />}>
-              <Route element={<Layout />}>
-                <Route path={ROUTES.home} element={<Home />} />
-                <Route path={ROUTES.pacientes} element={<Pacientes />} />
-                <Route
-                  path="*"
-                  element={<Typography variant="h1">404</Typography>}
-                />
+          <AuthProvider>
+            <Switch>
+              {/* --- Rotas Protegidas (Só para logados) --- */}
+              <Route element={<PrivateRoute />}>
+                <Route element={<Layout />}>
+                  <Route path={ROUTES.home} element={<Home />} />
+                  <Route path={ROUTES.pacientes} element={<Pacientes />} />
+                  <Route
+                    path="*"
+                    element={<Typography variant="h1">404</Typography>}
+                  />
+                </Route>
               </Route>
-            </Route>
-            <Route
-              path={ROUTES.auth.login}
-              element={<Typography variant="h1">login</Typography>}
-            />
-            <Route
-              path={ROUTES.notFound}
-              element={<Typography variant="h1">404</Typography>}
-            />
-          </Switch>
+
+              {/* --- Rotas Públicas (Só para NÃO logados) --- */}
+              <Route element={<PublicRoute />}>
+                <Route path={ROUTES.auth.login} element={<Login />} />
+              </Route>
+
+              {/* Rota 404 geral (pode ser ajustada) */}
+              <Route
+                path={ROUTES.notFound}
+                element={<Typography variant="h1">404</Typography>}
+              />
+            </Switch>
+          </AuthProvider>
         </BrowserRouter>
       </SCThemeProvider>
     </MuiThemeProvider>

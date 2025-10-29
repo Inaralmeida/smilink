@@ -15,8 +15,8 @@ type ItemHeaderNavigation = {
   path: string;
   permission: {
     admin: boolean;
-    user: boolean;
-    doctor: boolean;
+    paciente: boolean;
+    profissional: boolean;
   };
   icon: MuiIcon;
 };
@@ -24,38 +24,38 @@ type ItemHeaderNavigation = {
 export const ItensHeaderNavigation: ItemHeaderNavigation[] = [
   {
     name: "Home",
-    path: ROUTES.home,
-    permission: { admin: true, user: true, doctor: true },
+    path: `${ROUTES.home}`,
+    permission: { admin: true, paciente: true, profissional: true },
     icon: HomeIcon,
   },
   {
     name: "Consultas",
     path: ROUTES.consultas,
-    permission: { admin: true, user: true, doctor: true },
+    permission: { admin: true, paciente: true, profissional: true },
     icon: CalendarMonthIcon,
   },
   {
     name: "Agendar",
     path: ROUTES.agendar,
-    permission: { admin: true, user: true, doctor: true },
+    permission: { admin: true, paciente: true, profissional: true },
     icon: EventIcon,
   },
   {
     name: "Pacientes",
     path: ROUTES.pacientes,
-    permission: { admin: true, user: false, doctor: true },
+    permission: { admin: true, paciente: false, profissional: true },
     icon: PeopleIcon,
   },
   {
     name: "Profissionais",
     path: ROUTES.profissionais,
-    permission: { admin: true, user: false, doctor: false },
+    permission: { admin: true, paciente: false, profissional: false },
     icon: PersonIcon,
   },
   {
     name: "Estoque",
     path: ROUTES.estoque,
-    permission: { admin: true, user: false, doctor: false },
+    permission: { admin: true, paciente: false, profissional: false },
     icon: InventoryIcon,
   },
 ];

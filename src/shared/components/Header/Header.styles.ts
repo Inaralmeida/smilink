@@ -12,12 +12,13 @@ export const HeaderContainer = styled.header`
   @media screen and (max-width: 600px) {
     flex-direction: column;
     height: auto;
+    padding: 6px;
   }
 `;
 export const LogoContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 
   @media screen and (max-width: 600px) {
     width: 100%;

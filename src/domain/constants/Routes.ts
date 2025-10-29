@@ -1,5 +1,5 @@
 export const ROUTES = {
-  home: "/",
+  home: "/home",
   auth: {
     login: "/auth/login",
     register: "/auth/register",
@@ -10,5 +10,5 @@ export const ROUTES = {
   pacientes: "/pacientes",
   profissionais: "/profissionais",
   estoque: "/estoque",
-  notFound: "/404",
+  notFound: "*",
 };

@@ -8,9 +8,14 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import * as React from "react";
+import { useNavigation } from "../../../../application/Hooks/useNavigation";
+import { clearToken, removeUser } from "../../../../service/http/storage";
 import IconLink from "../../IconLink/IconLink";
+import { useAuth } from "../../../../application/context/AuthContext";
 
 const MenuSettings = () => {
+  const { handleSetAuth } = useAuth();
+  const { navigationToLogin } = useNavigation();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -18,6 +23,14 @@ const MenuSettings = () => {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    handleSetAuth(false);
+    removeUser();
+    clearToken();
+    navigationToLogin();
+    handleClose();
   };
   return (
     <React.Fragment>
@@ -84,7 +97,7 @@ const MenuSettings = () => {
           </ListItemIcon>
           Configurações
         </MenuItem>
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
@@ -96,3 +109,4 @@ const MenuSettings = () => {
 };
 
 export default MenuSettings;
+
