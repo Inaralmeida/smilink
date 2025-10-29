@@ -1,5 +1,4 @@
-import { Box, Grid, Icon, Paper, Typography } from "@mui/material";
-import React from "react";
+import { Box, Grid, Paper, Typography } from "@mui/material";
 import { MockDashPacientes } from "../../service/mock/dashboardPaciente";
 
 const DashboardPaciente = () => {
