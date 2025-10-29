@@ -11,8 +11,10 @@ import * as React from "react";
 import { useNavigation } from "../../../../application/Hooks/useNavigation";
 import { clearToken, removeUser } from "../../../../service/http/storage";
 import IconLink from "../../IconLink/IconLink";
+import { useAuth } from "../../../../application/context/AuthContext";
 
 const MenuSettings = () => {
+  const { handleSetAuth } = useAuth();
   const { navigationToLogin } = useNavigation();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -24,6 +26,7 @@ const MenuSettings = () => {
   };
 
   const handleLogout = () => {
+    handleSetAuth(false);
     removeUser();
     clearToken();
     navigationToLogin();
@@ -106,3 +109,4 @@ const MenuSettings = () => {
 };
 
 export default MenuSettings;
+
