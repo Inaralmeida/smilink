@@ -50,7 +50,7 @@ const Dashboard = ({
   return (
     <Grid container spacing={2}>
       {section.items.map((item) => (
-        <Grid item key={item.id} size={{ xs: 12, sm: 12, md: 6 }}>
+        <Grid key={item.id} size={{ xs: 12, sm: 12, md: 6 }}>
           <Box
             sx={{ width: "100%", padding: "16px", backgroundColor: "white" }}
           >
@@ -60,27 +60,26 @@ const Dashboard = ({
 
             {item.chart === "line" && (
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={mockData}>
+                <LineChart data={item.mockData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="Realizadas"
-                    stroke={theme.palette.primary.main}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Canceladas"
-                    stroke={theme.palette.error.main}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="Faltas"
-                    stroke={theme.palette.warning.dark}
-                  />
+                  {item.metrics.map((metric) => (
+                    <Line
+                      key={metric.dataKey}
+                      type={
+                        metric.type as
+                          | "monotone"
+                          | "linear"
+                          | "step"
+                          | undefined
+                      }
+                      dataKey={metric.dataKey}
+                      stroke={metric.stroke}
+                    />
+                  ))}
                 </LineChart>
               </ResponsiveContainer>
             )}
