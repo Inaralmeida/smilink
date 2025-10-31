@@ -14,7 +14,7 @@ import { Controller } from "react-hook-form";
 import { useNovaConsultaForm } from "../../src/module/Consultas/hooks/useNovaConsultaForm";
 import SeletorDisponibilidade from "../../src/module/Consultas/components/SeletorDisponibilidade";
 
-const NovaConsulta = () => {
+const NovaConsulta = ({ onCloseModal }: { onCloseModal: () => void }) => {
   const {
     control,
     handleSubmit,
@@ -33,7 +33,7 @@ const NovaConsulta = () => {
     toastOpen,
     handleToastClose,
     textFieldSx,
-  } = useNovaConsultaForm();
+  } = useNovaConsultaForm({ onCloseModal });
 
   if (!user) {
     return <Typography>Erro: Usuário não autenticado.</Typography>;
@@ -42,7 +42,6 @@ const NovaConsulta = () => {
   return (
     <Box
       width={"100%"}
-      height={"85vh"}
       sx={{
         overflowY: "auto",
         display: "flex",
@@ -57,7 +56,7 @@ const NovaConsulta = () => {
 
       <Grid container spacing={4}>
         {role === "admin" && (
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <Controller
               name="pacienteId"
               control={control}
@@ -95,7 +94,7 @@ const NovaConsulta = () => {
         )}
 
         {role === "paciente" && (
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               fullWidth
               variant="outlined"
@@ -108,7 +107,7 @@ const NovaConsulta = () => {
           </Grid>
         )}
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12 }}>
           <Controller
             name="profissionalId"
             control={control}
@@ -144,7 +143,7 @@ const NovaConsulta = () => {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12 }}>
           <Controller
             name="procedimento"
             control={control}

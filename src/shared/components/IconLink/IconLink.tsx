@@ -4,7 +4,7 @@ interface IconLinkProps {
   Icon: React.ComponentType<any>;
   label: string;
   value: string;
-  link: string;
+  link?: string;
   onClick?: (event: any) => void;
   backgroundColor?: boolean;
   color: "blue" | "white";
@@ -49,7 +49,7 @@ const IconLink = ({
       label={label}
       icon={<Icon />}
       value={value}
-      href={link}
+      href={link ?? ""}
       onClick={onClick}
     />
   );

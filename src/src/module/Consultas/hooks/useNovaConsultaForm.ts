@@ -19,7 +19,11 @@ interface IFormInputs {
   observacoes: string;
 }
 
-export const useNovaConsultaForm = () => {
+export const useNovaConsultaForm = ({
+  onCloseModal,
+}: {
+  onCloseModal: () => void;
+}) => {
   const { role, user } = useAuth();
 
   const {
@@ -93,6 +97,7 @@ export const useNovaConsultaForm = () => {
     resetField("data");
     resetField("horario");
     resetField("observacoes");
+    onCloseModal();
     if (role === "admin") resetField("pacienteId");
   };
 
