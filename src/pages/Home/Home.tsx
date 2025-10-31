@@ -6,11 +6,14 @@ import DashboardPaciente from "../../module/dashboard/DashboardPaciente";
 import { IconLink } from "../../shared/components";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
-import { ROUTES } from "../../domain/constants/Routes";
+import { useState } from "react";
+import ModalNovaConsulta from "../../module/Consultas/ModalNovaConsulta";
+import ModalNovoPaciente from "../../module/Pacientes/ModalNovoPaciente/ModalNovoPaciente";
 
 const Home = () => {
   const role = getRole();
-
+  const [openModalConsulta, setOpenModalConsulta] = useState(false);
+  const [openModalNovoPaciente, setOpenModalNovoPaciente] = useState(false);
   const isProfessional = role === "profissional";
   const isAdmin = role === "admin";
 
@@ -39,7 +42,7 @@ const Home = () => {
               Icon={NoteAddIcon}
               label="Nova consulta"
               value="nova_consulta"
-              link={`${ROUTES.consultas.base}/nova`}
+              onClick={() => setOpenModalConsulta(true)}
               color="blue"
             />
           )}
@@ -49,13 +52,27 @@ const Home = () => {
               Icon={PersonAddAlt1Icon}
               label="Novo Paciente"
               value="novo_paciente"
-              link="/novo-paciente"
+              onClick={() => setOpenModalNovoPaciente(true)}
               color="blue"
             />
           )}
         </Box>
       </Box>
       <DashboardPaciente />
+
+      {!isProfessional && (
+        <ModalNovaConsulta
+          onClose={() => setOpenModalConsulta(false)}
+          open={openModalConsulta}
+        />
+      )}
+
+      {isAdmin && (
+        <ModalNovoPaciente
+          onClose={() => setOpenModalNovoPaciente(false)}
+          open={openModalNovoPaciente}
+        />
+      )}
     </BoxContainer>
   );
 };
