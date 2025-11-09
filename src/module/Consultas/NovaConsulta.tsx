@@ -11,10 +11,19 @@ import {
   Typography,
 } from "@mui/material";
 import { Controller } from "react-hook-form";
-import { useNovaConsultaForm } from "../../src/module/Consultas/hooks/useNovaConsultaForm";
-import SeletorDisponibilidade from "../../src/module/Consultas/components/SeletorDisponibilidade";
+import type { TPaciente } from "../../domain/types/paciente";
+import { useNovaConsultaForm } from "./hooks/useNovaConsultaForm";
+import SeletorDisponibilidade from "./components/SeletorDisponibilidade";
 
-const NovaConsulta = ({ onCloseModal }: { onCloseModal: () => void }) => {
+type NovaConsultaProps = {
+  onCloseModal: () => void;
+  pacientePreSelecionado?: TPaciente | null;
+};
+
+const NovaConsulta = ({
+  onCloseModal,
+  pacientePreSelecionado,
+}: NovaConsultaProps) => {
   const {
     control,
     handleSubmit,
@@ -33,7 +42,7 @@ const NovaConsulta = ({ onCloseModal }: { onCloseModal: () => void }) => {
     toastOpen,
     handleToastClose,
     textFieldSx,
-  } = useNovaConsultaForm({ onCloseModal });
+  } = useNovaConsultaForm({ onCloseModal, pacientePreSelecionado });
 
   if (!user) {
     return <Typography>Erro: Usuário não autenticado.</Typography>;
@@ -72,7 +81,7 @@ const NovaConsulta = ({ onCloseModal }: { onCloseModal: () => void }) => {
                   label="Paciente"
                   error={!!error}
                   helperText={error?.message}
-                  disabled={loadingPacientes}
+                  disabled={loadingPacientes || !!pacientePreSelecionado}
                   InputProps={{
                     endAdornment: loadingPacientes && (
                       <CircularProgress size={20} />
