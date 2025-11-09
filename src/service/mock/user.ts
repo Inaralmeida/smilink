@@ -1,6 +1,70 @@
 import type { TUserProps } from "../../domain/types/users";
 
 export const MOCK_USER: TUserProps[] = [
+  // Usuários de teste - Inara Almeida
+  {
+    id: "inara-admin-001",
+    nome: "Inara",
+    sobrenome: "Almeida",
+    apelido: "inara.almeida",
+    email: "inara-admin@smilink.com",
+    cpf: "12345678901",
+    senha: "12345678",
+    celular: "11987654321",
+    dataNascimento: "1990-05-15T00:00:00.000Z",
+    fotoPerfil:
+      "https://avatars.githubusercontent.com/u/71791646?s=400&u=ce6cce9cc4a4a8c303e7a5bb23ac1f69b73ceb3c&v=4",
+    role: "admin",
+    _raw: {
+      nat: "BR",
+      registered: {
+        date: "2020-01-01T00:00:00.000Z",
+        age: 4,
+      },
+    },
+  },
+  {
+    id: "inara-profissional-001",
+    nome: "Inara",
+    sobrenome: "Almeida",
+    apelido: "inara.almeida",
+    email: "inara-profissional@smilink.com",
+    cpf: "12345678902",
+    senha: "12345678",
+    celular: "11987654322",
+    dataNascimento: "1990-05-15T00:00:00.000Z",
+    fotoPerfil:
+      "https://avatars.githubusercontent.com/u/71791646?s=400&u=ce6cce9cc4a4a8c303e7a5bb23ac1f69b73ceb3c&v=4",
+    role: "profissional",
+    _raw: {
+      nat: "BR",
+      registered: {
+        date: "2020-01-01T00:00:00.000Z",
+        age: 4,
+      },
+    },
+  },
+  {
+    id: "inara-paciente-001",
+    nome: "Inara",
+    sobrenome: "Almeida",
+    apelido: "inara.almeida",
+    email: "inara-paciente@gmail.com",
+    cpf: "12345678903",
+    senha: "12345678",
+    celular: "11987654323",
+    dataNascimento: "1990-05-15T00:00:00.000Z",
+    fotoPerfil:
+      "https://avatars.githubusercontent.com/u/71791646?s=400&u=ce6cce9cc4a4a8c303e7a5bb23ac1f69b73ceb3c&v=4",
+    role: "paciente",
+    _raw: {
+      nat: "BR",
+      registered: {
+        date: "2020-01-01T00:00:00.000Z",
+        age: 4,
+      },
+    },
+  },
   {
     id: "22992093-8cf4-485c-830f-ad7d2e63ja2e",
     nome: "Inara",
