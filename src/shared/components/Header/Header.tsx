@@ -3,7 +3,6 @@ import { BottomNavigation, Box, ToggleButton } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import React, { useState } from "react";
 import { ItensHeaderNavigation } from "../../../domain/constants/ItensHeaderNavigation";
-import { ROUTES } from "../../../domain/constants/Routes";
 import type { TRole } from "../../../domain/types/typeRoles";
 import IconLink from "../IconLink/IconLink";
 import Logo from "../Logo/Logo";
@@ -62,9 +61,8 @@ const Header = ({ role }: { role: TRole }) => {
                   Icon={item.icon}
                   label={item.name}
                   value={item.name}
-                  link={
-                    item.name === "Home" ? `${ROUTES.home}/${role}` : item.path
-                  }
+                  link={item.path}
+                  color="white"
                 />
               )}
             </>
