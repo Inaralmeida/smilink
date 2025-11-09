@@ -107,7 +107,7 @@ export const LIST_FIELDS_PACIENTE = [
       {
         fieldName: "complemento",
         type: "text",
-        required: true,
+        required: false,
         label: "Complemento",
         size: 6,
       },
