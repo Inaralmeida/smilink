@@ -32,4 +32,6 @@ export type TPaciente = {
   // Plano de saúde
   name_plano_saude?: string;
   numero_careteirinha?: string;
+  // Última consulta (para cálculo de pacientes inativos)
+  ultimaConsulta?: string; // ISO string - data da última consulta
 };

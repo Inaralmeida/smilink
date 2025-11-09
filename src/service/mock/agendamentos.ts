@@ -6,7 +6,7 @@ import type { TProfissional } from "../../domain/types/profissional";
 import type { TPaciente } from "../../domain/types/paciente";
 
 // Lista de procedimentos odontológicos
-const procedimentos = [
+export const PROCEDIMENTOS_ODONTOLOGICOS = [
   "Consulta de Rotina",
   "Limpeza e Profilaxia",
   "Restauração",
@@ -21,10 +21,17 @@ const procedimentos = [
   "Cirurgia",
   "Radiografia",
   "Avaliação Inicial",
+  "Raspagem",
+  "Aplicação de Flúor",
+  "Remoção de Tártaro",
+  "Avaliação de Implante",
+  "Consulta de Retorno",
 ];
 
+const procedimentos = PROCEDIMENTOS_ODONTOLOGICOS;
+
 // Durações padrão por procedimento (em minutos)
-const duracaoPorProcedimento: Record<string, number> = {
+export const DURACAO_POR_PROCEDIMENTO: Record<string, number> = {
   "Consulta de Rotina": 30,
   "Limpeza e Profilaxia": 45,
   Restauração: 60,
@@ -39,7 +46,14 @@ const duracaoPorProcedimento: Record<string, number> = {
   Cirurgia: 120,
   Radiografia: 15,
   "Avaliação Inicial": 30,
+  Raspagem: 60,
+  "Aplicação de Flúor": 30,
+  "Remoção de Tártaro": 45,
+  "Avaliação de Implante": 60,
+  "Consulta de Retorno": 20,
 };
+
+const duracaoPorProcedimento = DURACAO_POR_PROCEDIMENTO;
 
 // Status possíveis (removido - não utilizado)
 // const statusPossiveis: StatusAgendamento[] = [
@@ -50,13 +64,27 @@ const duracaoPorProcedimento: Record<string, number> = {
 // ];
 
 /**
- * Gera uma data aleatória nos próximos 30 dias
+ * Gera uma data aleatória distribuída entre passado e futuro
+ * 60% no passado (últimos 90 dias), 30% no mês atual, 10% no futuro
  */
 const gerarDataAleatoria = (): string => {
   const hoje = new Date();
-  const diasNoFuturo = Math.floor(Math.random() * 30);
+  const random = Math.random();
+
+  let diasOffset: number;
+  if (random < 0.6) {
+    // 60% no passado (últimos 90 dias)
+    diasOffset = -Math.floor(Math.random() * 90);
+  } else if (random < 0.9) {
+    // 30% no mês atual (últimos 30 dias até hoje)
+    diasOffset = -Math.floor(Math.random() * 30);
+  } else {
+    // 10% no futuro (próximos 30 dias)
+    diasOffset = Math.floor(Math.random() * 30);
+  }
+
   const data = new Date(hoje);
-  data.setDate(data.getDate() + diasNoFuturo);
+  data.setDate(data.getDate() + diasOffset);
   return data.toISOString().split("T")[0]; // YYYY-MM-DD
 };
 
@@ -84,8 +112,8 @@ export const gerarAgendamentosIniciais = (
     return agendamentos;
   }
 
-  // Gerar entre 20 e 40 agendamentos
-  const quantidadeAgendamentos = Math.floor(Math.random() * 21) + 20;
+  // Gerar entre 60 e 100 agendamentos para ter dados suficientes
+  const quantidadeAgendamentos = Math.floor(Math.random() * 41) + 60;
 
   for (let i = 0; i < quantidadeAgendamentos; i++) {
     const profissional =
@@ -107,12 +135,33 @@ export const gerarAgendamentosIniciais = (
     dataAgendamento.setHours(0, 0, 0, 0);
 
     let status: StatusAgendamento = "agendado";
-    if (dataAgendamento < hoje) {
-      // Se a data já passou, pode ser finalizado ou cancelado
-      status = Math.random() > 0.1 ? "finalizado" : "cancelado";
-    } else if (dataAgendamento.getTime() === hoje.getTime()) {
-      // Se é hoje, pode estar em atendimento
-      status = Math.random() > 0.7 ? "em_atendimento" : "agendado";
+    const diasDiferenca = Math.floor(
+      (hoje.getTime() - dataAgendamento.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diasDiferenca > 0) {
+      // Se a data já passou, 85% finalizado, 10% cancelado, 5% agendado (atrasado)
+      const rand = Math.random();
+      if (rand < 0.85) {
+        status = "finalizado";
+      } else if (rand < 0.95) {
+        status = "cancelado";
+      } else {
+        status = "agendado"; // Agendamento atrasado
+      }
+    } else if (diasDiferenca === 0) {
+      // Se é hoje, 70% agendado, 20% em atendimento, 10% finalizado
+      const rand = Math.random();
+      if (rand < 0.7) {
+        status = "agendado";
+      } else if (rand < 0.9) {
+        status = "em_atendimento";
+      } else {
+        status = "finalizado";
+      }
+    } else {
+      // Futuro - todos agendados
+      status = "agendado";
     }
 
     const agora = new Date();

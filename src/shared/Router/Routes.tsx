@@ -3,14 +3,13 @@ import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { BrowserRouter, Route, Routes as Switch } from "react-router-dom";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
 import { ROUTES } from "../../domain/constants/Routes";
-import { Home, Pacientes, Profissional, Agenda } from "../../pages";
+import { Home, Pacientes, Profissional, Agenda, Consultas } from "../../pages";
 import { Layout } from "../components";
 import { theme } from "../ui/style/theme";
 import PrivateRoute from "./PrivateRoute";
 import PublicRoute from "./PublicRoute"; // 1. IMPORTE O NOVO COMPONENTE
 import { AuthProvider } from "../../application/context/AuthContext";
 import Login from "../../pages/login/Login";
-import Consultas from "../../module/Consultas/Consultas";
 
 const Routes = () => {
   return (

@@ -348,6 +348,33 @@ export const fetchPacienteById = async (
   return pacientes.find((p) => p.id === id) || null;
 };
 
+// Função para atualizar paciente
+export const atualizarPaciente = async (
+  id: string,
+  dados: Partial<TPaciente>
+): Promise<TPaciente | null> => {
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const pacientes = storage.get<TPaciente[]>(
+    STORAGE_KEYS.PACIENTES,
+    MOCK_PACIENTES
+  );
+
+  const index = pacientes.findIndex((p) => p.id === id);
+  if (index === -1) return null;
+
+  pacientes[index] = {
+    ...pacientes[index],
+    ...dados,
+  };
+
+  storage.set(STORAGE_KEYS.PACIENTES, pacientes);
+
+  return pacientes[index];
+};
+
 // Função para arquivar paciente
 export const arquivarPaciente = async (id: string): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
