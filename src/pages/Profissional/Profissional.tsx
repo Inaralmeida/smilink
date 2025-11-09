@@ -7,8 +7,11 @@ import {
   DialogActions,
   Button,
   Modal,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import SearchIcon from "@mui/icons-material/Search";
 import BoxContainer from "../../shared/components/BoxContainer/BoxContainer";
 import { useProfissionais } from "../../module/Profissional/hooks/useProfissionais";
 import ListaProfissionais from "../../module/Profissional/components/ListaProfissionais";
@@ -39,6 +42,23 @@ const Profissional = () => {
   const [modalHistoricoOpen, setModalHistoricoOpen] = useState(false);
   const [profissionalParaArquivar, setProfissionalParaArquivar] =
     useState<TProfissional | null>(null);
+  const [termoBusca, setTermoBusca] = useState("");
+
+  // Filtrar profissionais pelo nome ou sobrenome
+  const profissionaisFiltrados = useMemo(() => {
+    if (!termoBusca.trim()) {
+      return profissionais;
+    }
+    const termoLower = termoBusca.toLowerCase().trim();
+    return profissionais.filter(
+      (profissional) =>
+        profissional.nome.toLowerCase().includes(termoLower) ||
+        profissional.sobrenome.toLowerCase().includes(termoLower) ||
+        `${profissional.nome} ${profissional.sobrenome}`
+          .toLowerCase()
+          .includes(termoLower)
+    );
+  }, [profissionais, termoBusca]);
 
   const handleProfissionalClick = (profissional: TProfissional) => {
     setProfissionalSelecionado(profissional);
@@ -171,8 +191,39 @@ const Profissional = () => {
           </Button>
         </Box>
 
+        <Box sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Buscar por nome..."
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E7F2F4",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#037F8C",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#037F8C",
+                },
+              },
+            }}
+          />
+        </Box>
+
         <ListaProfissionais
-          profissionais={profissionais}
+          profissionais={profissionaisFiltrados}
           loading={loading}
           onProfissionalClick={handleProfissionalClick}
           onVerHorarios={(profissional) => {

@@ -6,8 +6,11 @@ import {
   DialogContent,
   DialogActions,
   Button,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import SearchIcon from "@mui/icons-material/Search";
 import BoxContainer from "../../shared/components/BoxContainer/BoxContainer";
 import { usePacientes } from "../../module/Pacientes/hooks/usePacientes";
 import ListaPacientes from "../../module/Pacientes/components/ListaPacientes";
@@ -28,6 +31,23 @@ const Pacientes = () => {
   const [modalArquivarOpen, setModalArquivarOpen] = useState(false);
   const [pacienteParaArquivar, setPacienteParaArquivar] =
     useState<TPaciente | null>(null);
+  const [termoBusca, setTermoBusca] = useState("");
+
+  // Filtrar pacientes pelo nome ou sobrenome
+  const pacientesFiltrados = useMemo(() => {
+    if (!termoBusca.trim()) {
+      return pacientes;
+    }
+    const termoLower = termoBusca.toLowerCase().trim();
+    return pacientes.filter(
+      (paciente) =>
+        paciente.nome.toLowerCase().includes(termoLower) ||
+        paciente.sobrenome.toLowerCase().includes(termoLower) ||
+        `${paciente.nome} ${paciente.sobrenome}`
+          .toLowerCase()
+          .includes(termoLower)
+    );
+  }, [pacientes, termoBusca]);
 
   const handlePacienteClick = (paciente: TPaciente) => {
     setPacienteSelecionado(paciente);
@@ -89,8 +109,39 @@ const Pacientes = () => {
           </Typography>
         </Box>
 
+        <Box sx={{ mb: 2 }}>
+          <TextField
+            fullWidth
+            placeholder="Buscar por nome..."
+            value={termoBusca}
+            onChange={(e) => setTermoBusca(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: "#E7F2F4",
+                },
+                "&:hover fieldset": {
+                  borderColor: "#037F8C",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: "#037F8C",
+                },
+              },
+            }}
+          />
+        </Box>
+
         <ListaPacientes
-          pacientes={pacientes}
+          pacientes={pacientesFiltrados}
           loading={loading}
           onPacienteClick={handlePacienteClick}
           onEditar={handleEditar}
