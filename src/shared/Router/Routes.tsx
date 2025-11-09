@@ -3,7 +3,7 @@ import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { BrowserRouter, Route, Routes as Switch } from "react-router-dom";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
 import { ROUTES } from "../../domain/constants/Routes";
-import { Home, Pacientes, Profissional } from "../../pages";
+import { Home, Pacientes, Profissional, Agenda } from "../../pages";
 import { Layout } from "../components";
 import { theme } from "../ui/style/theme";
 import PrivateRoute from "./PrivateRoute";
@@ -28,6 +28,7 @@ const Routes = () => {
                     path={ROUTES.profissionais}
                     element={<Profissional />}
                   />
+                  <Route path={ROUTES.agendar} element={<Agenda />} />
                   <Route path={ROUTES.consultas.base} element={<Consultas />} />
                   <Route
                     path="*"

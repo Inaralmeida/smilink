@@ -323,7 +323,14 @@ export const MOCK_PACIENTES: TPaciente[] = [
 // Função para buscar pacientes (simula API)
 export const fetchPacientes = async (): Promise<TPaciente[]> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
-  return MOCK_PACIENTES.filter((p) => !p.arquivado);
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const pacientes = storage.get<TPaciente[]>(
+    STORAGE_KEYS.PACIENTES,
+    MOCK_PACIENTES
+  );
+  return pacientes.filter((p) => !p.arquivado);
 };
 
 // Função para buscar paciente por ID
@@ -331,14 +338,30 @@ export const fetchPacienteById = async (
   id: string
 ): Promise<TPaciente | null> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
-  return MOCK_PACIENTES.find((p) => p.id === id) || null;
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const pacientes = storage.get<TPaciente[]>(
+    STORAGE_KEYS.PACIENTES,
+    MOCK_PACIENTES
+  );
+  return pacientes.find((p) => p.id === id) || null;
 };
 
 // Função para arquivar paciente
 export const arquivarPaciente = async (id: string): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
-  const paciente = MOCK_PACIENTES.find((p) => p.id === id);
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const pacientes = storage.get<TPaciente[]>(
+    STORAGE_KEYS.PACIENTES,
+    MOCK_PACIENTES
+  );
+
+  const paciente = pacientes.find((p) => p.id === id);
   if (paciente) {
     paciente.arquivado = true;
+    storage.set(STORAGE_KEYS.PACIENTES, pacientes);
   }
 };

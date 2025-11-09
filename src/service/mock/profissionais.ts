@@ -136,7 +136,14 @@ export const MOCK_PROFISSIONAIS: TProfissional[] =
 // Função para buscar profissionais (simula API)
 export const fetchProfissionais = async (): Promise<TProfissional[]> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
-  return MOCK_PROFISSIONAIS.filter((p) => !p.arquivado).slice(0, 10);
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const profissionais = storage.get<TProfissional[]>(
+    STORAGE_KEYS.PROFISSIONAIS,
+    MOCK_PROFISSIONAIS
+  );
+  return profissionais.filter((p) => !p.arquivado).slice(0, 10);
 };
 
 // Função para buscar profissional por ID
@@ -144,7 +151,14 @@ export const fetchProfissionalById = async (
   id: string
 ): Promise<TProfissional | null> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
-  return MOCK_PROFISSIONAIS.find((p) => p.id === id) || null;
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const profissionais = storage.get<TProfissional[]>(
+    STORAGE_KEYS.PROFISSIONAIS,
+    MOCK_PROFISSIONAIS
+  );
+  return profissionais.find((p) => p.id === id) || null;
 };
 
 // Função para criar profissional
@@ -152,12 +166,23 @@ export const criarProfissional = async (
   profissional: Omit<TProfissional, "id">
 ): Promise<TProfissional> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const profissionais = storage.get<TProfissional[]>(
+    STORAGE_KEYS.PROFISSIONAIS,
+    MOCK_PROFISSIONAIS
+  );
+
   const novoProfissional: TProfissional = {
     ...profissional,
     id: `profissional-${Date.now()}`,
     arquivado: false,
   };
-  MOCK_PROFISSIONAIS.push(novoProfissional);
+
+  profissionais.push(novoProfissional);
+  storage.set(STORAGE_KEYS.PROFISSIONAIS, profissionais);
+
   return novoProfissional;
 };
 
@@ -167,22 +192,41 @@ export const atualizarProfissional = async (
   dados: Partial<TProfissional>
 ): Promise<TProfissional | null> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
-  const index = MOCK_PROFISSIONAIS.findIndex((p) => p.id === id);
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const profissionais = storage.get<TProfissional[]>(
+    STORAGE_KEYS.PROFISSIONAIS,
+    MOCK_PROFISSIONAIS
+  );
+
+  const index = profissionais.findIndex((p) => p.id === id);
   if (index === -1) return null;
 
-  MOCK_PROFISSIONAIS[index] = {
-    ...MOCK_PROFISSIONAIS[index],
+  profissionais[index] = {
+    ...profissionais[index],
     ...dados,
   };
 
-  return MOCK_PROFISSIONAIS[index];
+  storage.set(STORAGE_KEYS.PROFISSIONAIS, profissionais);
+
+  return profissionais[index];
 };
 
 // Função para arquivar profissional
 export const arquivarProfissional = async (id: string): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
-  const profissional = MOCK_PROFISSIONAIS.find((p) => p.id === id);
+  const { storage, STORAGE_KEYS } = await import(
+    "../../shared/utils/localStorage"
+  );
+  const profissionais = storage.get<TProfissional[]>(
+    STORAGE_KEYS.PROFISSIONAIS,
+    MOCK_PROFISSIONAIS
+  );
+
+  const profissional = profissionais.find((p) => p.id === id);
   if (profissional) {
     profissional.arquivado = true;
+    storage.set(STORAGE_KEYS.PROFISSIONAIS, profissionais);
   }
 };
