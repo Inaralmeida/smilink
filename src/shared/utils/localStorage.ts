@@ -8,6 +8,7 @@ const STORAGE_KEYS = {
   PACIENTES: "smilink_pacientes",
   AGENDAMENTOS: "smilink_agendamentos",
   CONSULTAS: "smilink_consultas",
+  ESTOQUE: "smilink_estoque",
   INITIALIZED: "smilink_initialized",
 } as const;
 
