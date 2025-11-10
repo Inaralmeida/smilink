@@ -1,6 +1,5 @@
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import Logout from "@mui/icons-material/Logout";
-import Settings from "@mui/icons-material/Settings";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";

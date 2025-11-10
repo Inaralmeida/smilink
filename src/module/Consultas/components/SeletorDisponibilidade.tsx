@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useController, type Control } from "react-hook-form";
-import type { AgendaProfissional } from "../../../../service/mock/agendas";
+import type { AgendaProfissional } from "../../../service/mock/agendas";
 
 // Tipos
 interface Props {

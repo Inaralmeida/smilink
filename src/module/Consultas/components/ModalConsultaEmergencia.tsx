@@ -66,8 +66,7 @@ type ModalConsultaEmergenciaProps = {
 const ModalConsultaEmergencia = ({
   open,
   onClose,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  profissionalId, // Não usado diretamente, mas necessário na interface
+  profissionalId: _profissionalId, // Não usado diretamente, mas necessário na interface
   profissionalNome,
   profissionalSobrenome,
   onSalvar,

@@ -1,5 +1,3 @@
-import type { StatusAgendamento } from "./agendamento";
-
 /**
  * Tipo de pagamento da consulta
  */

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Autocomplete, TextField, Chip, Box, Typography } from "@mui/material";
+import { Autocomplete, TextField, Chip } from "@mui/material";
 
 type SeletorTagsProps = {
   label: string;
