@@ -162,6 +162,12 @@ export const regenerarConsultas = async () => {
     }, {} as Record<string, number>)
   );
 
+  // Garantir consulta de demonstração após regenerar
+  const { garantirConsultaDemonstracao } = await import(
+    "../../service/mock/consultas"
+  );
+  await garantirConsultaDemonstracao();
+
   return consultas;
 };
 

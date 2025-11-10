@@ -107,16 +107,27 @@ export const useConsultasPorPaciente = (pacienteId: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const carregarConsultas = useCallback(async () => {
-    if (!pacienteId) return;
+    if (!pacienteId) {
+      console.warn("⚠️ useConsultasPorPaciente: pacienteId vazio");
+      return;
+    }
+
+    console.log(
+      `🔄 useConsultasPorPaciente: Carregando consultas para paciente ${pacienteId}`
+    );
     setLoading(true);
     setError(null);
     try {
       const dados = await fetchConsultasPorPaciente(pacienteId);
+      console.log(
+        `✅ useConsultasPorPaciente: ${dados.length} consultas carregadas`
+      );
       setConsultas(dados);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao carregar consultas"
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "Erro ao carregar consultas";
+      console.error(`❌ useConsultasPorPaciente:`, errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -124,6 +135,22 @@ export const useConsultasPorPaciente = (pacienteId: string) => {
 
   useEffect(() => {
     carregarConsultas();
+
+    // Ouvir eventos de atualização de consultas
+    const handleConsultasAtualizadas = () => {
+      carregarConsultas();
+    };
+    window.addEventListener(
+      "consultas-regeneradas",
+      handleConsultasAtualizadas
+    );
+
+    return () => {
+      window.removeEventListener(
+        "consultas-regeneradas",
+        handleConsultasAtualizadas
+      );
+    };
   }, [carregarConsultas]);
 
   return {

@@ -17,6 +17,13 @@ import {
     await regenerarConsultas();
     console.log("✅ Consultas regeneradas com sucesso!");
 
+    // Garantir consulta de demonstração sempre ativa
+    const { garantirConsultaDemonstracao } = await import(
+      "./service/mock/consultas"
+    );
+    await garantirConsultaDemonstracao();
+    console.log("✅ Consulta de demonstração verificada!");
+
     // Disparar evento para componentes recarregarem
     window.dispatchEvent(new Event("consultas-regeneradas"));
   } catch (error) {

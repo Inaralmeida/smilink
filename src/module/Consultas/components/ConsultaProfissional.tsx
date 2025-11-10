@@ -6,13 +6,7 @@ import {
   CardContent,
   Button,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   CircularProgress,
-  Alert,
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -24,19 +18,29 @@ import { ptBR } from "date-fns/locale";
 import ModalIniciarConsulta from "./ModalIniciarConsulta";
 import ModalFinalizarConsulta from "./ModalFinalizarConsulta";
 import ModalAdicionarObservacao from "./ModalAdicionarObservacao";
+import ModalConsultaEmergencia from "./ModalConsultaEmergencia";
 import type { TConsulta } from "../../../domain/types/consulta";
+import { criarConsultaEmergencia } from "../../../service/mock/consultas";
+import EmergencyIcon from "@mui/icons-material/Emergency";
 
 const ConsultaProfissional = () => {
   const { user } = useAuth();
   const dataHoje = format(new Date(), "yyyy-MM-dd");
-  const { consultas, loading, iniciar, finalizar, adicionarObservacao } =
-    useConsultasDoDia(user?.id || "", dataHoje);
+  const {
+    consultas,
+    loading,
+    iniciar,
+    finalizar,
+    adicionarObservacao,
+    carregarConsultas,
+  } = useConsultasDoDia(user?.id || "", dataHoje);
 
   const [consultaSelecionada, setConsultaSelecionada] =
     useState<TConsulta | null>(null);
   const [modalIniciarOpen, setModalIniciarOpen] = useState(false);
   const [modalFinalizarOpen, setModalFinalizarOpen] = useState(false);
   const [modalObservacaoOpen, setModalObservacaoOpen] = useState(false);
+  const [modalEmergenciaOpen, setModalEmergenciaOpen] = useState(false);
 
   // Separar consultas por status
   const consultasAgendadas = useMemo(() => {
@@ -102,12 +106,63 @@ const ConsultaProfissional = () => {
     );
   }
 
+  const handleSalvarEmergencia = async (dados: {
+    pacienteId: string;
+    pacienteNome: string;
+    pacienteSobrenome: string;
+    procedimentosRealizados: string[];
+    materiaisUtilizados: string[];
+    equipamentosUtilizados: string[];
+    examesSolicitados: string[];
+    observacoes?: string;
+    horarioInicio: string;
+    data: string;
+  }) => {
+    if (!user) return;
+
+    await criarConsultaEmergencia({
+      ...dados,
+      profissionalId: user.id,
+      profissionalNome: user.nome,
+      profissionalSobrenome: user.sobrenome,
+    });
+
+    // Recarregar consultas
+    await carregarConsultas();
+
+    // Disparar evento para atualizar outras partes do sistema
+    window.dispatchEvent(new Event("consultas-regeneradas"));
+  };
+
   return (
     <Box>
-      <Typography variant="h5" fontWeight={500} mb={3}>
-        Consultas do Dia -{" "}
-        {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-      </Typography>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 3,
+        }}
+      >
+        <Typography variant="h5" fontWeight={500}>
+          Consultas do Dia -{" "}
+          {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+        </Typography>
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<EmergencyIcon />}
+          onClick={() => setModalEmergenciaOpen(true)}
+          sx={{
+            backgroundColor: "#d32f2f",
+            "&:hover": {
+              backgroundColor: "#b71c1c",
+            },
+          }}
+        >
+          Iniciar Consulta de Emergência
+        </Button>
+      </Box>
 
       {/* Consultas Agendadas */}
       {consultasAgendadas.length > 0 && (
@@ -134,7 +189,7 @@ const ConsultaProfissional = () => {
                     </Typography>
                     <Chip
                       label={getStatusLabel(consulta.status)}
-                      color={getStatusColor(consulta.status) as any}
+                      color={getStatusColor(consulta.status)}
                       size="small"
                       sx={{ mt: 1 }}
                     />
@@ -180,7 +235,7 @@ const ConsultaProfissional = () => {
                     </Typography>
                     <Chip
                       label={getStatusLabel(consulta.status)}
-                      color={getStatusColor(consulta.status) as any}
+                      color={getStatusColor(consulta.status)}
                       size="small"
                       sx={{ mt: 1 }}
                     />
@@ -226,7 +281,7 @@ const ConsultaProfissional = () => {
                     </Typography>
                     <Chip
                       label={getStatusLabel(consulta.status)}
-                      color={getStatusColor(consulta.status) as any}
+                      color={getStatusColor(consulta.status)}
                       size="small"
                       sx={{ mt: 1 }}
                     />
@@ -306,6 +361,15 @@ const ConsultaProfissional = () => {
             setConsultaSelecionada(null);
           }
         }}
+      />
+
+      <ModalConsultaEmergencia
+        open={modalEmergenciaOpen}
+        onClose={() => setModalEmergenciaOpen(false)}
+        profissionalId={user?.id || ""}
+        profissionalNome={user?.nome || ""}
+        profissionalSobrenome={user?.sobrenome || ""}
+        onSalvar={handleSalvarEmergencia}
       />
     </Box>
   );

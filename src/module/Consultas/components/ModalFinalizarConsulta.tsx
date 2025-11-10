@@ -76,7 +76,7 @@ const ModalFinalizarConsulta = ({
   >([]);
   const [examesSolicitados, setExamesSolicitados] = useState<string[]>([]);
   const [observacoes, setObservacoes] = useState("");
-  const [horarioFim, setHorarioFim] = useState(format(new Date(), "HH:mm"));
+  const [horarioFim, setHorarioFim] = useState("");
 
   // Agendar próxima consulta
   const [agendarProxima, setAgendarProxima] = useState(false);
@@ -96,13 +96,19 @@ const ModalFinalizarConsulta = ({
       setExamesSolicitados(consulta.examesSolicitados || []);
       setObservacoes(consulta.observacoes || "");
 
-      // Calcular horário de fim estimado (30 min após início)
-      if (consulta.horarioInicio) {
-        const [hora, minuto] = consulta.horarioInicio.split(":").map(Number);
-        const dataFim = new Date();
-        dataFim.setHours(hora, minuto + 30, 0, 0);
-        setHorarioFim(format(dataFim, "HH:mm"));
-      }
+      // Atualizar horário de fim com a hora atual (preview)
+      const atualizarHorarioFim = () => {
+        const agora = new Date();
+        const horas = agora.getHours().toString().padStart(2, "0");
+        const minutos = agora.getMinutes().toString().padStart(2, "0");
+        setHorarioFim(`${horas}:${minutos}`);
+      };
+
+      atualizarHorarioFim();
+      // Atualizar a cada minuto para mostrar preview do horário
+      const interval = setInterval(atualizarHorarioFim, 60000); // Atualizar a cada minuto
+
+      return () => clearInterval(interval);
     }
   }, [consulta, open]);
 
@@ -155,6 +161,12 @@ const ModalFinalizarConsulta = ({
     setError(null);
 
     try {
+      // Definir horário de fim automaticamente com a hora atual
+      const agora = new Date();
+      const horas = agora.getHours().toString().padStart(2, "0");
+      const minutos = agora.getMinutes().toString().padStart(2, "0");
+      const horarioFimAtual = `${horas}:${minutos}`;
+
       // Finalizar consulta
       await onFinalizar({
         procedimentosRealizados,
@@ -162,7 +174,7 @@ const ModalFinalizarConsulta = ({
         equipamentosUtilizados,
         examesSolicitados,
         observacoes: observacoes || undefined,
-        horarioFim,
+        horarioFim: horarioFimAtual, // Usar horário atual
       });
 
       // Se marcou para agendar próxima, criar agendamento
@@ -303,11 +315,12 @@ const ModalFinalizarConsulta = ({
 
         <TextField
           fullWidth
-          label="Horário de Término"
+          label="Horário de Término (será definido ao finalizar)"
           type="time"
           value={horarioFim}
-          onChange={(e) => setHorarioFim(e.target.value)}
+          disabled // Desabilitado - será definido automaticamente ao finalizar
           InputLabelProps={{ shrink: true }}
+          helperText="O horário será registrado automaticamente quando você finalizar a consulta"
           sx={{ mb: 3 }}
         />
 

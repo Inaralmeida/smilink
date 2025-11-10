@@ -20,7 +20,17 @@ import { ptBR } from "date-fns/locale";
 
 const HistoricoPaciente = () => {
   const { user } = useAuth();
-  const { consultas, loading } = useConsultasPorPaciente(user?.id || "");
+
+  // Debug: verificar se o usuário está carregado
+  console.log("🔍 HistoricoPaciente - User:", user);
+  console.log("🔍 HistoricoPaciente - User ID:", user?.id);
+
+  const { consultas, loading, error } = useConsultasPorPaciente(user?.id || "");
+
+  // Debug: verificar consultas carregadas
+  console.log("🔍 HistoricoPaciente - Consultas:", consultas.length);
+  console.log("🔍 HistoricoPaciente - Loading:", loading);
+  console.log("🔍 HistoricoPaciente - Error:", error);
 
   // Ordenar consultas por data (mais recente primeiro)
   const consultasOrdenadas = useMemo(() => {
@@ -67,6 +77,24 @@ const HistoricoPaciente = () => {
     );
   }
 
+  // Mostrar erro se houver
+  if (error) {
+    return (
+      <Box>
+        <Typography variant="h5" fontWeight={500} mb={3}>
+          Histórico de Consultas
+        </Typography>
+        <Card>
+          <CardContent>
+            <Typography color="error" align="center">
+              Erro ao carregar histórico: {error}
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Typography variant="h5" fontWeight={500} mb={3}>
@@ -79,6 +107,17 @@ const HistoricoPaciente = () => {
             <Typography color="text.secondary" align="center">
               Nenhuma consulta encontrada no histórico.
             </Typography>
+            {user && (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                align="center"
+                display="block"
+                mt={2}
+              >
+                Usuário: {user.nome} {user.sobrenome} (ID: {user.id})
+              </Typography>
+            )}
           </CardContent>
         </Card>
       ) : (
