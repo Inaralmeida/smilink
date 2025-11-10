@@ -15,7 +15,6 @@ import {
   Button,
   Alert,
   Chip,
-  Paper,
   List,
   ListItem,
   ListItemText,
@@ -158,70 +157,27 @@ const DashboardAdmin = () => {
       .slice(0, 10);
   }, [consultasDoMes]);
 
-  const pacientesMetricas = useMemo(() => {
-    const pacientesIdsSet = new Set(pacientes.map((p) => p.id));
+  const metricasPacientes = useMemo(() => {
     const pacientesAtendidosNoMes = new Set<string>();
+    const consultasFinalizadas = consultasDoMes.filter(
+      (c) => c.status === "finalizada"
+    );
 
-    consultasDoMes
-      .filter((c) => c.status === "finalizada")
-      .forEach((consulta) => {
-        if (pacientesIdsSet.has(consulta.pacienteId)) {
-          pacientesAtendidosNoMes.add(consulta.pacienteId);
-        }
-      });
-
-    const hoje = new Date();
-    const seisMesesAtras = new Date(hoje);
-    seisMesesAtras.setMonth(seisMesesAtras.getMonth() - 6);
-
-    const pacientesNovos: string[] = [];
-    const pacientesConstantes: string[] = [];
-    const pacientesInativos: string[] = [];
-
-    const [ano, mes] = mesSelecionado.split("-").map(Number);
-    const inicioMesSelecionado = startOfMonth(new Date(ano, mes - 1));
-
-    pacientes.forEach((paciente) => {
-      if (pacientesAtendidosNoMes.has(paciente.id)) {
-        const consultasAnteriores = consultas.filter((c) => {
-          if (c.pacienteId !== paciente.id || c.status !== "finalizada") {
-            return false;
-          }
-          const [anoConsulta, mesConsulta, diaConsulta] = c.data
-            .split("-")
-            .map(Number);
-          const dataConsulta = new Date(
-            anoConsulta,
-            mesConsulta - 1,
-            diaConsulta
-          );
-          return dataConsulta < inicioMesSelecionado;
-        });
-        if (consultasAnteriores.length === 0) {
-          pacientesNovos.push(paciente.id);
-        } else {
-          pacientesConstantes.push(paciente.id);
-        }
-      } else {
-        if (paciente.ultimaConsulta) {
-          const ultimaConsulta = new Date(paciente.ultimaConsulta);
-          if (ultimaConsulta < seisMesesAtras) {
-            pacientesInativos.push(paciente.id);
-          }
-        } else {
-          pacientesInativos.push(paciente.id);
-        }
-      }
+    consultasFinalizadas.forEach((consulta) => {
+      pacientesAtendidosNoMes.add(consulta.pacienteId);
     });
 
+    const totalPacientesUnicos = pacientesAtendidosNoMes.size;
+    const totalConsultasFinalizadas = consultasFinalizadas.length;
+
     return {
-      novos: pacientesNovos.length,
-      constantes: pacientesConstantes.length,
-      inativos: pacientesInativos.length,
-      atendidosNoMes: pacientesAtendidosNoMes.size,
+      atendidosNoMes:
+        totalConsultasFinalizadas > 0
+          ? Math.max(totalPacientesUnicos, 1)
+          : 0,
       total: pacientes.length,
     };
-  }, [consultasDoMes, pacientes, consultas, mesSelecionado]);
+  }, [consultasDoMes, pacientes.length]);
 
   const profissionaisAtivos = useMemo(() => {
     return profissionais.filter((p) => !p.arquivado).length;
@@ -366,7 +322,7 @@ const DashboardAdmin = () => {
                 Total de Pacientes
               </Typography>
               <Typography variant="h4" color="primary">
-                {pacientesMetricas.total}
+                {metricasPacientes.total}
               </Typography>
             </CardContent>
           </Card>
@@ -425,9 +381,11 @@ const DashboardAdmin = () => {
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Convênio
-              </Typography>
+              <MuiTooltip title="Consultas realizadas via convênio">
+                <Typography color="text.secondary" gutterBottom variant="body2">
+                  Convênio
+                </Typography>
+              </MuiTooltip>
               <Typography variant="h4" color="info.main">
                 {metricas.convenio}
               </Typography>
@@ -437,9 +395,11 @@ const DashboardAdmin = () => {
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Particular
-              </Typography>
+              <MuiTooltip title="Consultas realizadas de forma particular">
+                <Typography color="text.secondary" gutterBottom variant="body2">
+                  Particular
+                </Typography>
+              </MuiTooltip>
               <Typography variant="h4" color="warning.main">
                 {metricas.particular}
               </Typography>
@@ -453,7 +413,7 @@ const DashboardAdmin = () => {
                 Pacientes Atendidos
               </Typography>
               <Typography variant="h4" color="info.main">
-                {pacientesMetricas.atendidosNoMes}
+                {metricasPacientes.atendidosNoMes}
               </Typography>
             </CardContent>
           </Card>
@@ -461,7 +421,7 @@ const DashboardAdmin = () => {
       </Grid>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -493,7 +453,10 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, lg: 4 }}>
+      </Grid>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -539,134 +502,96 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
-      </Grid>
-
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                 Status de Estoque
               </Typography>
-              {itensEstoqueUrgencia.length > 0 && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <ErrorIcon />
-                    <Typography variant="body2" fontWeight="bold">
-                      {itensEstoqueUrgencia.length} itens em emergência
-                    </Typography>
-                  </Box>
-                </Alert>
-              )}
-              {itensEstoqueAtencao.length > 0 && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <WarningIcon />
-                    <Typography variant="body2" fontWeight="bold">
-                      {itensEstoqueAtencao.length} itens precisam de atenção
-                    </Typography>
-                  </Box>
-                </Alert>
-              )}
-              {itensEstoqueUrgencia.length === 0 &&
-                itensEstoqueAtencao.length === 0 && (
-                  <Alert severity="success">
-                    Todos os itens estão em níveis normais
+              <Box
+                sx={{
+                  maxHeight: 300,
+                  overflowY: "auto",
+                  pr: 1,
+                }}
+              >
+                {itensEstoqueUrgencia.length > 0 && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <ErrorIcon />
+                      <Typography variant="body2" fontWeight="bold">
+                        {itensEstoqueUrgencia.length} itens em emergência
+                      </Typography>
+                    </Box>
                   </Alert>
                 )}
-              {itensEstoqueUrgencia.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Itens em Emergência:
-                  </Typography>
-                  <List dense>
-                    {itensEstoqueUrgencia.slice(0, 5).map((item) => (
-                      <ListItem key={item.id}>
-                        <ListItemText
-                          primary={item.nome}
-                          secondary={`Quantidade: ${item.quantidade} ${
-                            item.unidade || "un"
-                          }`}
-                        />
-                        <Chip
-                          label="Emergência"
-                          color="error"
-                          size="small"
-                          icon={<ErrorIcon />}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                  {itensEstoqueUrgencia.length > 5 && (
-                    <Typography variant="caption" color="text.secondary">
-                      +{itensEstoqueUrgencia.length - 5} itens...
-                    </Typography>
+                {itensEstoqueAtencao.length > 0 && (
+                  <Alert severity="warning" sx={{ mb: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <WarningIcon />
+                      <Typography variant="body2" fontWeight="bold">
+                        {itensEstoqueAtencao.length} itens precisam de atenção
+                      </Typography>
+                    </Box>
+                  </Alert>
+                )}
+                {itensEstoqueUrgencia.length === 0 &&
+                  itensEstoqueAtencao.length === 0 && (
+                    <Alert severity="success">
+                      Todos os itens estão em níveis normais
+                    </Alert>
                   )}
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card sx={{ height: "100%" }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Métricas de Pacientes
-              </Typography>
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 6 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 2, textAlign: "center", bgcolor: "success.light" }}
-                  >
-                    <Typography color="text.secondary" variant="body2">
-                      Novos Pacientes
+                {itensEstoqueUrgencia.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Itens em Emergência:
                     </Typography>
-                    <Typography variant="h5" color="success.main">
-                      {pacientesMetricas.novos}
+                    <List dense>
+                      {itensEstoqueUrgencia.map((item) => (
+                        <ListItem key={item.id}>
+                          <ListItemText
+                            primary={item.nome}
+                            secondary={`Quantidade: ${item.quantidade} ${
+                              item.unidade || "un"
+                            }`}
+                          />
+                          <Chip
+                            label="Emergência"
+                            color="error"
+                            size="small"
+                            icon={<ErrorIcon />}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                )}
+                {itensEstoqueAtencao.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Itens que Precisam de Atenção:
                     </Typography>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 2, textAlign: "center", bgcolor: "primary.light" }}
-                  >
-                    <Typography color="text.secondary" variant="body2">
-                      Pacientes Constantes
-                    </Typography>
-                    <Typography variant="h5" color="primary.main">
-                      {pacientesMetricas.constantes}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 2, textAlign: "center", bgcolor: "warning.light" }}
-                  >
-                    <Typography color="text.secondary" variant="body2">
-                      Pacientes Inativos
-                    </Typography>
-                    <Typography variant="h5" color="warning.main">
-                      {pacientesMetricas.inativos}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid size={{ xs: 6 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{ p: 2, textAlign: "center", bgcolor: "info.light" }}
-                  >
-                    <Typography color="text.secondary" variant="body2">
-                      Atendidos no Mês
-                    </Typography>
-                    <Typography variant="h5" color="info.main">
-                      {pacientesMetricas.atendidosNoMes}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
+                    <List dense>
+                      {itensEstoqueAtencao.map((item) => (
+                        <ListItem key={item.id}>
+                          <ListItemText
+                            primary={item.nome}
+                            secondary={`Quantidade: ${item.quantidade} ${
+                              item.unidade || "un"
+                            }`}
+                          />
+                          <Chip
+                            label="Atenção"
+                            color="warning"
+                            size="small"
+                            icon={<WarningIcon />}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                )}
+              </Box>
             </CardContent>
           </Card>
         </Grid>

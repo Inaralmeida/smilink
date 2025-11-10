@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import BoxContainer from "../../shared/components/BoxContainer/BoxContainer";
 import { useAuth } from "../../application/context/AuthContext";
-import DashboardAdmin from "../../module/Consultas/components/DashboardAdmin";
+import ListaConsultasAdmin from "../../module/Consultas/components/ListaConsultasAdmin";
 import HistoricoPaciente from "../../module/Consultas/components/HistoricoPaciente";
 import ConsultaProfissional from "../../module/Consultas/components/ConsultaProfissional";
 import HistoricoConsultasProfissional from "../../module/Consultas/components/HistoricoConsultasProfissional";
@@ -40,7 +40,7 @@ const Consultas = () => {
 
     switch (role) {
       case "admin":
-        return <DashboardAdmin />;
+        return <ListaConsultasAdmin />;
       case "paciente":
         return <HistoricoPaciente />;
       case "profissional":

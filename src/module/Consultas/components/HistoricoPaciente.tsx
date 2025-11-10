@@ -124,8 +124,8 @@ const HistoricoPaciente = () => {
           });
 
         setAgendamentosFuturos(futuros);
-      } catch (err) {
-        console.error("Erro ao carregar agendamentos futuros:", err);
+      } catch {
+          console.error("Erro ao carregar agendamentos futuros", error);
       } finally {
         setLoadingAgendamentos(false);
       }
