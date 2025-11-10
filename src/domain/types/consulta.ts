@@ -51,6 +51,20 @@ export type TConsulta = {
   observacoes?: string; // Observações gerais
   observacoesProfissionais?: string; // Observações do profissional (pode ser adicionada após finalizar)
 
+  // Dados médicos do paciente
+  alergias?: string[]; // Alergias registradas durante a consulta
+  condicoesMedicas?: string[]; // Condições médicas registradas durante a consulta
+
+  // Receita médica
+  receita?: string; // Texto da receita médica
+
+  // Atestado médico
+  atestado?: {
+    emitido: boolean;
+    cid?: string; // CID (Classificação Internacional de Doenças)
+    dias?: number; // Quantidade de dias de afastamento
+  };
+
   // Status e pagamento
   status: StatusConsulta;
   tipoPagamento: TipoPagamento;

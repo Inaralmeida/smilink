@@ -14,6 +14,7 @@ export type TProfissional = {
   especialidades: string[];
   bio: string;
   registro?: string; // CRO (Conselho Regional de Odontologia)
+  crm?: string; // CRM (Conselho Regional de Medicina) - para médicos/dentistas
   // Dados pessoais
   telefone: string;
   data_nascimento: string;

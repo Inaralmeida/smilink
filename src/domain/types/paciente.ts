@@ -34,4 +34,7 @@ export type TPaciente = {
   numero_careteirinha?: string;
   // Última consulta (para cálculo de pacientes inativos)
   ultimaConsulta?: string; // ISO string - data da última consulta
+  // Dados médicos
+  alergias?: string[]; // Alergias do paciente
+  condicoes_medicas?: string[]; // Condições médicas do paciente
 };

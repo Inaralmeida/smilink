@@ -272,6 +272,14 @@ export const useConsultasDoDia = (profissionalId: string, data: string) => {
         examesSolicitados?: string[];
         observacoes?: string;
         horarioFim: string;
+        alergias?: string[];
+        condicoesMedicas?: string[];
+        receita?: string;
+        atestado?: {
+          emitido: boolean;
+          cid?: string;
+          dias?: number;
+        };
       }
     ) => {
       setLoading(true);

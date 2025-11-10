@@ -10,6 +10,7 @@ import {
   DURACAO_POR_PROCEDIMENTO,
 } from "./agendamentos";
 import { subMonths, eachMonthOfInterval } from "date-fns";
+import { garantirReceitaEAtestadoParaConsultasPassadas } from "./consultasMock";
 
 // Exportar para uso em outros módulos
 export { MATERIAIS_ODONTOLOGICOS, EXAMES_ODONTOLOGICOS };
@@ -57,7 +58,6 @@ export const criarConsultaDeAgendamento = (
  * Nota: Os parâmetros agendamentos e pacientes não são usados, pois o MOC gera dados independentes
  */
 export const gerarConsultasIniciais = async (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _agendamentos: TAgendamento[],
   pacientes: TPaciente[]
 ): Promise<TConsulta[]> => {
@@ -98,16 +98,26 @@ export const fetchConsultas = async (): Promise<TConsulta[]> => {
 
   const consultas = storage.get<TConsulta[]>(STORAGE_KEYS.CONSULTAS, []);
   console.log(`📋 fetchConsultas: ${consultas.length} consultas encontradas`);
-  if (consultas.length > 0) {
+
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  const consultasComReceitaEAtestado =
+    garantirReceitaEAtestadoParaConsultasPassadas(consultas);
+
+  // Salvar de volta no storage para persistir
+  if (consultasComReceitaEAtestado.length > 0) {
+    storage.set(STORAGE_KEYS.CONSULTAS, consultasComReceitaEAtestado);
+  }
+
+  if (consultasComReceitaEAtestado.length > 0) {
     // Log da distribuição por mês
-    const distribuicaoPorMes = consultas.reduce((acc, c) => {
+    const distribuicaoPorMes = consultasComReceitaEAtestado.reduce((acc, c) => {
       const mes = c.data.substring(0, 7); // YYYY-MM
       acc[mes] = (acc[mes] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
     console.log("📊 Distribuição por mês:", distribuicaoPorMes);
   }
-  return consultas;
+  return consultasComReceitaEAtestado;
 };
 
 /**
@@ -118,7 +128,16 @@ export const fetchConsultaById = async (
 ): Promise<TConsulta | null> => {
   await new Promise((resolve) => setTimeout(resolve, 200));
   const consultas = storage.get<TConsulta[]>(STORAGE_KEYS.CONSULTAS, []);
-  return consultas.find((c) => c.id === id) || null;
+  const consulta = consultas.find((c) => c.id === id) || null;
+
+  // Garantir que consulta passada tenha receita e atestado padrão
+  if (consulta) {
+    const consultasComReceitaEAtestado =
+      garantirReceitaEAtestadoParaConsultasPassadas([consulta]);
+    return consultasComReceitaEAtestado[0] || null;
+  }
+
+  return null;
 };
 
 /**
@@ -144,7 +163,7 @@ export const fetchConsultasPorProfissional = async (
       (c) => c.id === "consulta-demonstracao"
     );
     if (consultaDemo) {
-      return [consultaDemo];
+      return garantirReceitaEAtestadoParaConsultasPassadas([consultaDemo]);
     }
   }
 
@@ -154,10 +173,14 @@ export const fetchConsultasPorProfissional = async (
     consultaDemo &&
     !consultasDoProfissional.find((c) => c.id === "consulta-demonstracao")
   ) {
-    return [...consultasDoProfissional, consultaDemo];
+    return garantirReceitaEAtestadoParaConsultasPassadas([
+      ...consultasDoProfissional,
+      consultaDemo,
+    ]);
   }
 
-  return consultasDoProfissional;
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  return garantirReceitaEAtestadoParaConsultasPassadas(consultasDoProfissional);
 };
 
 /**
@@ -406,7 +429,8 @@ const gerarHistoricoConsultasParaPaciente = async (
     }
   }
 
-  return consultas;
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  return garantirReceitaEAtestadoParaConsultasPassadas(consultas);
 };
 
 /**
@@ -455,12 +479,17 @@ export const fetchConsultasPorPaciente = async (
     if (consultaDemo) {
       // Se a consulta de demonstração é do paciente, já está incluída
       if (consultaDemo.pacienteId === pacienteId) {
-        return consultasDoPaciente;
+        return garantirReceitaEAtestadoParaConsultasPassadas(
+          consultasDoPaciente
+        );
       }
       // Se não é do paciente, ainda assim mostrar no histórico (pode ser útil para demo)
-      return [consultaDemo, ...consultasDoPaciente];
+      return garantirReceitaEAtestadoParaConsultasPassadas([
+        consultaDemo,
+        ...consultasDoPaciente,
+      ]);
     }
-    return consultasDoPaciente;
+    return garantirReceitaEAtestadoParaConsultasPassadas(consultasDoPaciente);
   }
 
   console.log(
@@ -597,9 +626,9 @@ export const fetchConsultasPorPaciente = async (
     `✅ Gerado histórico de ${consultasParaAdicionar.length} consultas para paciente ${pacienteNome} ${pacienteSobrenome} (ID: ${pacienteId})`
   );
 
-  // Retornar consultas do paciente
+  // Retornar consultas do paciente com receita e atestado padrão
   // A consulta de demonstração será incluída se for do paciente (via fetchConsultasPorPaciente)
-  return consultasParaAdicionar;
+  return garantirReceitaEAtestadoParaConsultasPassadas(consultasParaAdicionar);
 };
 
 /**
@@ -633,11 +662,15 @@ export const fetchConsultasDoDia = async (
       consultaDemo &&
       !consultasDoDia.find((c) => c.id === "consulta-demonstracao")
     ) {
-      return [...consultasDoDia, consultaDemo];
+      return garantirReceitaEAtestadoParaConsultasPassadas([
+        ...consultasDoDia,
+        consultaDemo,
+      ]);
     }
   }
 
-  return consultasDoDia;
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  return garantirReceitaEAtestadoParaConsultasPassadas(consultasDoDia);
 };
 
 /**
@@ -916,6 +949,14 @@ export const finalizarConsulta = async (
     examesSolicitados?: string[];
     observacoes?: string;
     horarioFim: string;
+    alergias?: string[];
+    condicoesMedicas?: string[];
+    receita?: string;
+    atestado?: {
+      emitido: boolean;
+      cid?: string;
+      dias?: number;
+    };
   }
 ): Promise<TConsulta | null> => {
   const agora = new Date().toISOString();
@@ -932,15 +973,48 @@ export const finalizarConsulta = async (
       status: "finalizado",
     });
 
-    // Atualizar última consulta do paciente
+    // Atualizar última consulta do paciente e salvar alergias/condições no prontuário
     const { fetchPacienteById, atualizarPaciente } = await import(
       "./pacientes"
     );
     const paciente = await fetchPacienteById(consultaAtualizada.pacienteId);
     if (paciente) {
-      await atualizarPaciente(consultaAtualizada.pacienteId, {
+      const dadosAtualizacao: Record<string, unknown> = {
         ultimaConsulta: agora,
-      });
+      };
+
+      // Atualizar alergias e condições médicas do paciente (acumular com as existentes)
+      if (dados.alergias || dados.condicoesMedicas) {
+        const alergiasAtuais =
+          (paciente as TPaciente & { alergias?: string[] }).alergias || [];
+        const condicoesAtuais =
+          (paciente as TPaciente & { condicoes_medicas?: string[] })
+            .condicoes_medicas || [];
+
+        const novasAlergias = dados.alergias || [];
+        const novasCondicoes = dados.condicoesMedicas || [];
+
+        // Combinar alergias e condições, removendo duplicatas
+        const alergiasCombinadas = [
+          ...new Set([...alergiasAtuais, ...novasAlergias]),
+        ];
+        const condicoesCombinadas = [
+          ...new Set([...condicoesAtuais, ...novasCondicoes]),
+        ];
+
+        if (alergiasCombinadas.length > 0) {
+          dadosAtualizacao.alergias = alergiasCombinadas;
+        }
+
+        if (condicoesCombinadas.length > 0) {
+          dadosAtualizacao.condicoes_medicas = condicoesCombinadas;
+        }
+      }
+
+      await atualizarPaciente(
+        consultaAtualizada.pacienteId,
+        dadosAtualizacao as Partial<TPaciente>
+      );
     }
   }
 

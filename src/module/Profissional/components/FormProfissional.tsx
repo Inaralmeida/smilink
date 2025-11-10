@@ -353,7 +353,7 @@ const FormProfissional = ({
               />
             </Grid>
 
-            <Grid size={{ xs: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Controller
                 name="registro"
                 control={control}
@@ -367,6 +367,28 @@ const FormProfissional = ({
                     sx={{ bgcolor: "primary.contrastText" }}
                     error={!!errors.registro}
                     helperText={errors.registro?.message}
+                    disabled={disabled}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Controller
+                name="crm"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    label="CRM (Conselho Regional de Medicina)"
+                    variant="outlined"
+                    placeholder="Ex: CRM-SP 123456"
+                    sx={{ bgcolor: "primary.contrastText" }}
+                    error={!!errors.crm}
+                    helperText={
+                      errors.crm?.message || "Opcional - formato: CRM-SP 123456"
+                    }
                     disabled={disabled}
                   />
                 )}

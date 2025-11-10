@@ -61,6 +61,17 @@ const gerarRegistro = (): string => {
   return `${numeros}`;
 };
 
+// Função para gerar CRM aleatório (formato: CRM-SP 123456)
+const gerarCRM = (): string => {
+  const uf = ["SP", "RJ", "MG", "PR", "RS", "SC", "BA", "DF"][
+    Math.floor(Math.random() * 8)
+  ];
+  const numeros = Array.from({ length: 6 }, () =>
+    Math.floor(Math.random() * 10)
+  ).join("");
+  return `CRM-${uf} ${numeros}`;
+};
+
 // Função para gerar telefone de SP (celular) no formato 119xxxx-xxxx
 const gerarTelefoneSP = (): string => {
   const ddd = "11"; // DDD de São Paulo
@@ -90,6 +101,9 @@ const converterUsuariosParaProfissionais = (): TProfissional[] => {
     // CRO (Conselho Regional de Odontologia) - obrigatório para todos os dentistas
     const cro = gerarRegistro();
 
+    // CRM (Conselho Regional de Medicina) - para dentistas também
+    const crm = gerarCRM();
+
     // Ajustar email para @smilink
     const emailBase = user.email.split("@")[0];
     const emailProfissional = `${emailBase}@smilink.com`;
@@ -112,6 +126,7 @@ const converterUsuariosParaProfissionais = (): TProfissional[] => {
       especialidades: especialidadesSelecionadas,
       bio,
       registro: cro, // CRO para odontologia
+      crm: crm, // CRM para dentistas
       telefone: telefoneSP,
       data_nascimento: user.dataNascimento.split("T")[0],
       CPF: user.cpf,
@@ -133,6 +148,25 @@ const converterUsuariosParaProfissionais = (): TProfissional[] => {
 export const MOCK_PROFISSIONAIS: TProfissional[] =
   converterUsuariosParaProfissionais();
 
+// Log para debug: verificar se Inara está na lista
+if (typeof window !== "undefined") {
+  const inaraProf = MOCK_PROFISSIONAIS.find(
+    (p) => p.id === "inara-profissional-001"
+  );
+  console.log(
+    "🔍 [MOCK_PROFISSIONAIS] Profissional Inara encontrado:",
+    inaraProf ? "SIM" : "NÃO"
+  );
+  console.log(
+    "🔍 [MOCK_PROFISSIONAIS] Total de profissionais:",
+    MOCK_PROFISSIONAIS.length
+  );
+  console.log(
+    "🔍 [MOCK_PROFISSIONAIS] IDs dos profissionais:",
+    MOCK_PROFISSIONAIS.map((p) => p.id)
+  );
+}
+
 // Função para buscar profissionais (simula API)
 export const fetchProfissionais = async (): Promise<TProfissional[]> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
@@ -150,15 +184,59 @@ export const fetchProfissionais = async (): Promise<TProfissional[]> => {
 export const fetchProfissionalById = async (
   id: string
 ): Promise<TProfissional | null> => {
+  console.log("🔍 [fetchProfissionalById] Buscando profissional com ID:", id);
   await new Promise((resolve) => setTimeout(resolve, 300));
   const { storage, STORAGE_KEYS } = await import(
     "../../shared/utils/localStorage"
   );
-  const profissionais = storage.get<TProfissional[]>(
+  const profissionaisStorage = storage.get<TProfissional[]>(
     STORAGE_KEYS.PROFISSIONAIS,
-    MOCK_PROFISSIONAIS
+    []
   );
-  return profissionais.find((p) => p.id === id) || null;
+
+  // Combinar profissionais do storage com MOCK_PROFISSIONAIS para garantir que todos estejam disponíveis
+  const todosProfissionais = [...profissionaisStorage];
+  MOCK_PROFISSIONAIS.forEach((prof) => {
+    if (!todosProfissionais.find((p) => p.id === prof.id)) {
+      todosProfissionais.push(prof);
+    }
+  });
+
+  console.log(
+    "🔍 [fetchProfissionalById] Total de profissionais no storage:",
+    profissionaisStorage.length
+  );
+  console.log(
+    "🔍 [fetchProfissionalById] Total de profissionais (com MOCK):",
+    todosProfissionais.length
+  );
+  console.log(
+    "🔍 [fetchProfissionalById] IDs disponíveis:",
+    todosProfissionais.map((p) => p.id)
+  );
+
+  const profissionalEncontrado =
+    todosProfissionais.find((p) => p.id === id) || null;
+  console.log(
+    "🔍 [fetchProfissionalById] Profissional encontrado:",
+    profissionalEncontrado
+      ? `${profissionalEncontrado.nome} ${profissionalEncontrado.sobrenome}`
+      : "null"
+  );
+
+  // Se encontrou no MOCK mas não no storage, salvar no storage para próxima vez
+  if (
+    profissionalEncontrado &&
+    !profissionaisStorage.find((p) => p.id === id)
+  ) {
+    console.log(
+      "🔍 [fetchProfissionalById] Profissional encontrado no MOCK, salvando no storage..."
+    );
+    profissionaisStorage.push(profissionalEncontrado);
+    storage.set(STORAGE_KEYS.PROFISSIONAIS, profissionaisStorage);
+  }
+
+  return profissionalEncontrado;
 };
 
 // Função para criar profissional

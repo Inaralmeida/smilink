@@ -145,6 +145,53 @@ const CONVENIOS = [
   "Particular",
 ];
 
+// Receita padrão para consultas passadas
+const RECEITA_PADRAO = `Cetoprofeno 100mg - Tomar 1 comprimido de 8 em 8 horas por 7 dias
+Dipirona 500mg - Tomar 1 comprimido a cada 6 horas em caso de dor
+Dexametasona 4mg - Tomar 1 comprimido de 12 em 12 horas por 5 dias`;
+
+// CID padrão para atestados
+const CID_PADRAO = "K08.1 - Remoção de siso";
+const DIAS_AFASTAMENTO_PADRAO = 3;
+
+/**
+ * Garante que todas as consultas passadas tenham receita e atestado padrão
+ */
+export const garantirReceitaEAtestadoParaConsultasPassadas = (
+  consultas: TConsulta[]
+): TConsulta[] => {
+  const hoje = new Date();
+
+  return consultas.map((consulta) => {
+    // Verificar se é consulta passada e finalizada
+    const dataConsulta = new Date(`${consulta.data}T${consulta.horario}`);
+    const isPassada = dataConsulta < hoje && consulta.status === "finalizada";
+
+    if (!isPassada) {
+      return consulta;
+    }
+
+    // Criar cópia da consulta para não modificar a original
+    const consultaAtualizada = { ...consulta };
+
+    // Adicionar receita padrão se não tiver
+    if (!consultaAtualizada.receita) {
+      consultaAtualizada.receita = RECEITA_PADRAO;
+    }
+
+    // Adicionar atestado padrão se não tiver
+    if (!consultaAtualizada.atestado?.emitido) {
+      consultaAtualizada.atestado = {
+        emitido: true,
+        cid: CID_PADRAO,
+        dias: DIAS_AFASTAMENTO_PADRAO,
+      };
+    }
+
+    return consultaAtualizada;
+  });
+};
+
 /**
  * Gera um nome completo de paciente fictício
  */
@@ -610,11 +657,16 @@ export const gerarConsultasMockCompletas = (
   pacientesUltimaConsulta: Map<string, string>;
 } => {
   const consultas = gerarConsultasMock(profissionais);
+
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  const consultasComReceitaEAtestado =
+    garantirReceitaEAtestadoParaConsultasPassadas(consultas);
+
   const pacientesUltimaConsulta = new Map<string, string>();
 
   // Agrupar consultas por paciente e encontrar a última
   const consultasPorPaciente = new Map<string, TConsulta[]>();
-  consultas.forEach((consulta) => {
+  consultasComReceitaEAtestado.forEach((consulta) => {
     if (!consultasPorPaciente.has(consulta.pacienteId)) {
       consultasPorPaciente.set(consulta.pacienteId, []);
     }
@@ -638,7 +690,7 @@ export const gerarConsultasMockCompletas = (
   });
 
   return {
-    consultas,
+    consultas: consultasComReceitaEAtestado,
     pacientesUltimaConsulta,
   };
 };
@@ -838,5 +890,7 @@ export const adicionarConsultasInara = (
     `   👤 Como paciente (histórico): ${consultasComoPaciente} consultas`
   );
 
-  return [...consultas, ...consultasAdicionadas];
+  // Garantir que todas as consultas passadas tenham receita e atestado padrão
+  const todasConsultas = [...consultas, ...consultasAdicionadas];
+  return garantirReceitaEAtestadoParaConsultasPassadas(todasConsultas);
 };

@@ -10,8 +10,16 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
+  InputAdornment,
+  Chip,
+  IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import DescriptionIcon from "@mui/icons-material/Description";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { TConsulta } from "../../../domain/types/consulta";
 import SeletorTags from "./SeletorTags";
 import {
@@ -54,6 +62,14 @@ type ModalFinalizarConsultaProps = {
     examesSolicitados: string[];
     observacoes?: string;
     horarioFim: string;
+    alergias?: string[];
+    condicoesMedicas?: string[];
+    receita?: string;
+    atestado?: {
+      emitido: boolean;
+      cid?: string;
+      dias?: number;
+    };
   }) => Promise<void>;
 };
 
@@ -78,6 +94,20 @@ const ModalFinalizarConsulta = ({
   const [observacoes, setObservacoes] = useState("");
   const [horarioFim, setHorarioFim] = useState("");
 
+  // Dados médicos do paciente
+  const [alergias, setAlergias] = useState<string[]>([]);
+  const [condicoesMedicas, setCondicoesMedicas] = useState<string[]>([]);
+  const [novaAlergia, setNovaAlergia] = useState("");
+  const [novaCondicao, setNovaCondicao] = useState("");
+
+  // Receita médica
+  const [receita, setReceita] = useState("");
+
+  // Atestado médico
+  const [emitirAtestado, setEmitirAtestado] = useState(false);
+  const [cidAtestado, setCidAtestado] = useState("");
+  const [diasAtestado, setDiasAtestado] = useState<number>(1);
+
   // Agendar próxima consulta
   const [agendarProxima, setAgendarProxima] = useState(false);
   const [dataProxima, setDataProxima] = useState("");
@@ -95,6 +125,12 @@ const ModalFinalizarConsulta = ({
       setEquipamentosUtilizados(consulta.equipamentosUtilizados || []);
       setExamesSolicitados(consulta.examesSolicitados || []);
       setObservacoes(consulta.observacoes || "");
+      setAlergias(consulta.alergias || []);
+      setCondicoesMedicas(consulta.condicoesMedicas || []);
+      setReceita(consulta.receita || "");
+      setEmitirAtestado(consulta.atestado?.emitido || false);
+      setCidAtestado(consulta.atestado?.cid || "");
+      setDiasAtestado(consulta.atestado?.dias || 1);
 
       // Atualizar horário de fim com a hora atual (preview)
       const atualizarHorarioFim = () => {
@@ -132,6 +168,18 @@ const ModalFinalizarConsulta = ({
     if (dataProxima && consulta) {
       const filtrarHorariosDisponiveis = async () => {
         try {
+          // Gerar todos os horários possíveis
+          const todosHorarios: string[] = [];
+          for (let hora = 8; hora < 18; hora++) {
+            for (let minuto = 0; minuto < 60; minuto += 30) {
+              todosHorarios.push(
+                `${hora.toString().padStart(2, "0")}:${minuto
+                  .toString()
+                  .padStart(2, "0")}`
+              );
+            }
+          }
+
           const agendamentos = await fetchAgendamentos();
           const agendamentosDoDia = agendamentos.filter(
             (a) =>
@@ -142,7 +190,7 @@ const ModalFinalizarConsulta = ({
             agendamentosDoDia.map((a) => a.horario)
           );
 
-          const horariosLivres = horariosDisponiveis.filter(
+          const horariosLivres = todosHorarios.filter(
             (h) => !horariosOcupados.has(h)
           );
           setHorariosDisponiveis(horariosLivres);
@@ -151,8 +199,47 @@ const ModalFinalizarConsulta = ({
         }
       };
       filtrarHorariosDisponiveis();
+    } else {
+      // Se não há data selecionada, resetar para horários padrão
+      const horarios: string[] = [];
+      for (let hora = 8; hora < 18; hora++) {
+        for (let minuto = 0; minuto < 60; minuto += 30) {
+          horarios.push(
+            `${hora.toString().padStart(2, "0")}:${minuto
+              .toString()
+              .padStart(2, "0")}`
+          );
+        }
+      }
+      setHorariosDisponiveis(horarios);
     }
   }, [dataProxima, consulta]);
+
+  // Handlers para adicionar alergias e condições médicas
+  const handleAdicionarAlergia = () => {
+    if (novaAlergia.trim() && !alergias.includes(novaAlergia.trim())) {
+      setAlergias([...alergias, novaAlergia.trim()]);
+      setNovaAlergia("");
+    }
+  };
+
+  const handleRemoverAlergia = (alergia: string) => {
+    setAlergias(alergias.filter((a) => a !== alergia));
+  };
+
+  const handleAdicionarCondicao = () => {
+    if (
+      novaCondicao.trim() &&
+      !condicoesMedicas.includes(novaCondicao.trim())
+    ) {
+      setCondicoesMedicas([...condicoesMedicas, novaCondicao.trim()]);
+      setNovaCondicao("");
+    }
+  };
+
+  const handleRemoverCondicao = (condicao: string) => {
+    setCondicoesMedicas(condicoesMedicas.filter((c) => c !== condicao));
+  };
 
   const handleSubmit = async () => {
     if (!consulta) return;
@@ -161,6 +248,18 @@ const ModalFinalizarConsulta = ({
     setError(null);
 
     try {
+      // Validar atestado se emitido
+      if (
+        emitirAtestado &&
+        (!cidAtestado || !diasAtestado || diasAtestado < 1)
+      ) {
+        setError(
+          "Para emitir atestado, é necessário informar CID e quantidade de dias (mínimo 1)"
+        );
+        setLoading(false);
+        return;
+      }
+
       // Definir horário de fim automaticamente com a hora atual
       const agora = new Date();
       const horas = agora.getHours().toString().padStart(2, "0");
@@ -174,7 +273,18 @@ const ModalFinalizarConsulta = ({
         equipamentosUtilizados,
         examesSolicitados,
         observacoes: observacoes || undefined,
-        horarioFim: horarioFimAtual, // Usar horário atual
+        horarioFim: horarioFimAtual,
+        alergias: alergias.length > 0 ? alergias : undefined,
+        condicoesMedicas:
+          condicoesMedicas.length > 0 ? condicoesMedicas : undefined,
+        receita: receita.trim() || undefined,
+        atestado: emitirAtestado
+          ? {
+              emitido: true,
+              cid: cidAtestado,
+              dias: diasAtestado,
+            }
+          : undefined,
       });
 
       // Se marcou para agendar próxima, criar agendamento
@@ -312,6 +422,190 @@ const ModalFinalizarConsulta = ({
           onChange={(e) => setObservacoes(e.target.value)}
           sx={{ mb: 3 }}
         />
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Alergias e Condições Médicas */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <LocalHospitalIcon />
+            Dados Médicos do Paciente
+          </Typography>
+
+          {/* Alergias */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Alergias
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, mb: 1, flexWrap: "wrap" }}>
+              {alergias.map((alergia) => (
+                <Chip
+                  key={alergia}
+                  label={alergia}
+                  onDelete={() => handleRemoverAlergia(alergia)}
+                  deleteIcon={<DeleteIcon />}
+                  color="error"
+                  variant="outlined"
+                />
+              ))}
+            </Box>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Adicionar alergia"
+                value={novaAlergia}
+                onChange={(e) => setNovaAlergia(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAdicionarAlergia();
+                  }
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleAdicionarAlergia}
+                        edge="end"
+                        size="small"
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Condições Médicas */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Condições Médicas
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, mb: 1, flexWrap: "wrap" }}>
+              {condicoesMedicas.map((condicao) => (
+                <Chip
+                  key={condicao}
+                  label={condicao}
+                  onDelete={() => handleRemoverCondicao(condicao)}
+                  deleteIcon={<DeleteIcon />}
+                  color="warning"
+                  variant="outlined"
+                />
+              ))}
+            </Box>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Adicionar condição médica"
+                value={novaCondicao}
+                onChange={(e) => setNovaCondicao(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAdicionarCondicao();
+                  }
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleAdicionarCondicao}
+                        edge="end"
+                        size="small"
+                      >
+                        <AddIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Receita Médica */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <AssignmentIcon />
+            Receita Médica
+          </Typography>
+          <TextField
+            fullWidth
+            label="Receita"
+            multiline
+            rows={6}
+            value={receita}
+            onChange={(e) => setReceita(e.target.value)}
+            placeholder="Digite a receita médica aqui..."
+            helperText="Esta receita será salva no prontuário do paciente"
+          />
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        {/* Atestado Médico */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+          >
+            <DescriptionIcon />
+            Atestado Médico
+          </Typography>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={emitirAtestado}
+                onChange={(e) => setEmitirAtestado(e.target.checked)}
+              />
+            }
+            label="Emitir atestado médico"
+            sx={{ mb: 2 }}
+          />
+
+          {emitirAtestado && (
+            <Box
+              sx={{ pl: 4, display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              <TextField
+                fullWidth
+                label="CID"
+                value={cidAtestado}
+                onChange={(e) => setCidAtestado(e.target.value)}
+                placeholder="Ex: K08.1 - Remoção de siso"
+                helperText="Classificação Internacional de Doenças"
+                required
+              />
+              <TextField
+                fullWidth
+                type="number"
+                label="Dias de Afastamento"
+                value={diasAtestado}
+                onChange={(e) => setDiasAtestado(parseInt(e.target.value) || 1)}
+                inputProps={{ min: 1, max: 365 }}
+                helperText="Quantidade de dias que o paciente ficará afastado"
+                required
+              />
+            </Box>
+          )}
+        </Box>
+
+        <Divider sx={{ my: 3 }} />
 
         <TextField
           fullWidth

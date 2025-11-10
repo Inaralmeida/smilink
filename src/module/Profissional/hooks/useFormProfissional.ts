@@ -53,6 +53,13 @@ const profissionalSchema = z.object({
   registro: z
     .string()
     .min(1, "CRO (Conselho Regional de Odontologia) é obrigatório"),
+  crm: z
+    .string()
+    .optional()
+    .refine(
+      (val) => !val || val.length >= 5,
+      "CRM deve ter pelo menos 5 caracteres (formato: CRM-SP 123456)"
+    ),
   cep: z.string().transform(unmask).pipe(z.string().length(8, "CEP inválido")),
   street: z.string().min(1, "Logradouro é obrigatório"),
   number: z.string().min(1, "Número é obrigatório"),
@@ -108,6 +115,7 @@ export const useFormProfissional = ({
       bio: prof.bio || "",
       fotoPerfil: prof.fotoPerfil || "",
       registro: prof.registro || "",
+      crm: prof.crm || "",
       cep: prof.cep || "",
       street: prof.street || "",
       number: prof.number || "",
@@ -141,6 +149,7 @@ export const useFormProfissional = ({
       bio: "",
       fotoPerfil: "",
       registro: "",
+      crm: "",
       cep: "",
       street: "",
       number: "",

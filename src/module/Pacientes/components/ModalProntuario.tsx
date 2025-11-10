@@ -16,6 +16,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  Button,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -23,9 +24,17 @@ import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import MedicationIcon from "@mui/icons-material/Medication";
 import DescriptionIcon from "@mui/icons-material/Description";
+import DownloadIcon from "@mui/icons-material/Download";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import type { TPaciente } from "../../../domain/types/paciente";
 import type { TConsulta, StatusConsulta } from "../../../domain/types/consulta";
 import { fetchConsultasPorPaciente } from "../../../service/mock/consultas";
+import { fetchProfissionalById } from "../../../service/mock/profissionais";
+import {
+  gerarPDFReceita,
+  gerarPDFAtestado,
+} from "../../../shared/utils/pdfGenerator";
 import { useEffect, useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -564,6 +573,120 @@ const ModalProntuario = ({ open, onClose, paciente }: ModalProntuarioProps) => {
                                         {consulta.observacoesProfissionais}
                                       </Typography>
                                     )}
+                                  </Paper>
+                                </Grid>
+                              )}
+
+                              {/* Receita Médica */}
+                              {consulta.receita && (
+                                <Grid size={{ xs: 12 }}>
+                                  <Typography
+                                    variant="subtitle2"
+                                    color="text.secondary"
+                                    gutterBottom
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <ReceiptIcon sx={{ fontSize: 18 }} />
+                                    Receita Médica
+                                  </Typography>
+                                  <Paper
+                                    variant="outlined"
+                                    sx={{ p: 2, bgcolor: "#fafafa", mb: 2 }}
+                                  >
+                                    <Typography
+                                      variant="body2"
+                                      sx={{ whiteSpace: "pre-line", mb: 2 }}
+                                    >
+                                      {consulta.receita}
+                                    </Typography>
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      startIcon={<DownloadIcon />}
+                                      onClick={async () => {
+                                        try {
+                                          const profissional =
+                                            await fetchProfissionalById(
+                                              consulta.profissionalId
+                                            );
+                                          if (profissional) {
+                                            await gerarPDFReceita(
+                                              consulta,
+                                              profissional
+                                            );
+                                          }
+                                        } catch (error) {
+                                          console.error(
+                                            "Erro ao gerar PDF da receita:",
+                                            error
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      Baixar Receita
+                                    </Button>
+                                  </Paper>
+                                </Grid>
+                              )}
+
+                              {/* Atestado Médico */}
+                              {consulta.atestado?.emitido && (
+                                <Grid size={{ xs: 12 }}>
+                                  <Typography
+                                    variant="subtitle2"
+                                    color="text.secondary"
+                                    gutterBottom
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <VerifiedUserIcon sx={{ fontSize: 18 }} />
+                                    Atestado Médico
+                                  </Typography>
+                                  <Paper
+                                    variant="outlined"
+                                    sx={{ p: 2, bgcolor: "#fafafa" }}
+                                  >
+                                    <Typography variant="body2" paragraph>
+                                      <strong>CID:</strong>{" "}
+                                      {consulta.atestado.cid || "N/A"}
+                                    </Typography>
+                                    <Typography variant="body2" paragraph>
+                                      <strong>Dias de Afastamento:</strong>{" "}
+                                      {consulta.atestado.dias || "N/A"} dia(s)
+                                    </Typography>
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      startIcon={<DownloadIcon />}
+                                      onClick={async () => {
+                                        try {
+                                          const profissional =
+                                            await fetchProfissionalById(
+                                              consulta.profissionalId
+                                            );
+                                          if (profissional) {
+                                            await gerarPDFAtestado(
+                                              consulta,
+                                              profissional
+                                            );
+                                          }
+                                        } catch (error) {
+                                          console.error(
+                                            "Erro ao gerar PDF do atestado:",
+                                            error
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      Baixar Atestado
+                                    </Button>
                                   </Paper>
                                 </Grid>
                               )}
