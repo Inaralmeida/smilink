@@ -59,18 +59,32 @@ export const criarConsultaDeAgendamento = (
 export const gerarConsultasIniciais = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _agendamentos: TAgendamento[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _pacientes: TPaciente[]
+  pacientes: TPaciente[]
 ): Promise<TConsulta[]> => {
   // Importar profissionais reais do MOC
   const { MOCK_PROFISSIONAIS } = await import("./profissionais");
 
   // Usar o MOC específico para gerar consultas completas
-  const { gerarConsultasMockCompletas } = await import("./consultasMock");
+  const { gerarConsultasMockCompletas, adicionarConsultasInara } = await import(
+    "./consultasMock"
+  );
 
   const { consultas } = gerarConsultasMockCompletas(MOCK_PROFISSIONAIS);
 
-  return consultas;
+  // Adicionar consultas específicas para Inara
+  const pacientesSimplificados = pacientes.map((p) => ({
+    id: p.id,
+    nome: p.nome,
+    sobrenome: p.sobrenome,
+  }));
+
+  const consultasComInara = adicionarConsultasInara(
+    consultas,
+    MOCK_PROFISSIONAIS,
+    pacientesSimplificados
+  );
+
+  return consultasComInara;
 };
 
 /**

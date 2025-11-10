@@ -642,3 +642,201 @@ export const gerarConsultasMockCompletas = (
     pacientesUltimaConsulta,
   };
 };
+
+/**
+ * Adiciona consultas específicas para a usuária Inara Almeida
+ * - Como profissional: consultas para TODOS os dias de novembro e dezembro de 2025
+ * - Como paciente: consultas no histórico (últimos 12 meses, pelo menos 20 consultas)
+ */
+export const adicionarConsultasInara = (
+  consultas: TConsulta[],
+  profissionais: TProfissional[],
+  pacientes: Array<{ id: string; nome: string; sobrenome: string }>
+): TConsulta[] => {
+  const consultasAdicionadas: TConsulta[] = [];
+
+  // Encontrar o profissional Inara
+  const profissionalInara = profissionais.find(
+    (p) => p.id === "inara-profissional-001"
+  );
+
+  // Encontrar o paciente Inara
+  const pacienteInara = pacientes.find((p) => p.id === "inara-paciente-001");
+
+  if (!profissionalInara) {
+    console.warn(
+      "⚠️ Profissional Inara (inara-profissional-001) não encontrado"
+    );
+    return consultas;
+  }
+
+  // 1. Adicionar consultas como PROFISSIONAL para novembro e dezembro de 2025
+  // Gerar consultas para TODOS os dias de novembro e dezembro
+  const meses = [11, 12]; // Novembro e Dezembro
+  const ano = 2025;
+
+  meses.forEach((mes) => {
+    const diasNoMes = new Date(ano, mes, 0).getDate();
+
+    // Gerar consultas para TODOS os dias do mês
+    for (let dia = 1; dia <= diasNoMes; dia++) {
+      const data = `${ano}-${mes.toString().padStart(2, "0")}-${dia
+        .toString()
+        .padStart(2, "0")}`;
+
+      // Quantidade de consultas por dia (3-5 consultas por dia para ter bastante conteúdo)
+      const consultasPorDia = Math.floor(Math.random() * 3) + 3; // 3-5 consultas
+
+      // Horários disponíveis (8h às 17h, intervalos de 30min)
+      const horariosDisponiveis: string[] = [];
+      for (let hora = 8; hora < 18; hora++) {
+        horariosDisponiveis.push(`${hora.toString().padStart(2, "0")}:00`);
+        if (hora < 17) {
+          horariosDisponiveis.push(`${hora.toString().padStart(2, "0")}:30`);
+        }
+      }
+
+      // Selecionar horários aleatórios para o dia (garantir que não haja sobreposição)
+      const horariosSelecionados = horariosDisponiveis
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.min(consultasPorDia, horariosDisponiveis.length))
+        .sort();
+
+      horariosSelecionados.forEach((horario) => {
+        // Selecionar um paciente aleatório
+        let pacienteId: string;
+        let pacienteNome: string;
+        let pacienteSobrenome: string;
+        let tipoPagamento: TipoPagamento;
+        let convenio: string | undefined;
+
+        // 20% de chance de usar a própria Inara como paciente, 80% pacientes fictícios
+        if (pacienteInara && Math.random() > 0.8) {
+          pacienteId = pacienteInara.id;
+          pacienteNome = pacienteInara.nome;
+          pacienteSobrenome = pacienteInara.sobrenome;
+          tipoPagamento = Math.random() > 0.5 ? "convenio" : "particular";
+          convenio =
+            tipoPagamento === "convenio"
+              ? CONVENIOS[Math.floor(Math.random() * (CONVENIOS.length - 1))]
+              : undefined;
+        } else {
+          // Usar paciente fictício
+          const novoPaciente = gerarNomePaciente();
+          pacienteId = gerarPacienteId();
+          pacienteNome = novoPaciente.nome;
+          pacienteSobrenome = novoPaciente.sobrenome;
+          tipoPagamento = Math.random() > 0.4 ? "convenio" : "particular";
+          convenio =
+            tipoPagamento === "convenio"
+              ? CONVENIOS[Math.floor(Math.random() * (CONVENIOS.length - 1))]
+              : undefined;
+        }
+
+        const consulta = gerarConsulta(
+          profissionalInara,
+          pacienteId,
+          pacienteNome,
+          pacienteSobrenome,
+          data,
+          horario,
+          tipoPagamento,
+          convenio
+        );
+
+        // Para novembro e dezembro, marcar como finalizadas (já que são meses passados/futuros)
+        // Se for data futura, manter como agendada
+        const dataConsulta = new Date(`${data}T${horario}`);
+        const hoje = new Date();
+        if (dataConsulta < hoje) {
+          consulta.status = "finalizada";
+        } else {
+          consulta.status = "agendada";
+          consulta.horarioFim = undefined;
+          consulta.finalizadoEm = undefined;
+        }
+
+        consultasAdicionadas.push(consulta);
+      });
+    }
+  });
+
+  // 2. Adicionar consultas no HISTÓRICO como PACIENTE (pelo menos 20 consultas)
+  if (pacienteInara) {
+    // Gerar consultas históricas para o paciente Inara
+    // Uma consulta por mês nos últimos 12 meses, garantindo pelo menos 20 consultas
+    const hoje = new Date();
+    const profissionaisDisponiveis = profissionais.filter(
+      (p) => p.id !== "inara-profissional-001" && !p.arquivado
+    );
+
+    if (profissionaisDisponiveis.length > 0) {
+      // Gerar pelo menos 20 consultas distribuídas pelos últimos 12 meses
+      const totalConsultas = Math.max(20, 24); // 24 consultas (2 por mês em média)
+
+      for (let i = 0; i < totalConsultas; i++) {
+        // Distribuir ao longo dos últimos 12 meses
+        const mesesAtras = Math.floor(Math.random() * 12);
+        const dataConsulta = new Date(
+          hoje.getFullYear(),
+          hoje.getMonth() - mesesAtras,
+          1
+        );
+        const anoConsulta = dataConsulta.getFullYear();
+        const mesConsulta = dataConsulta.getMonth() + 1;
+
+        // Selecionar um profissional aleatório
+        const profissional =
+          profissionaisDisponiveis[
+            Math.floor(Math.random() * profissionaisDisponiveis.length)
+          ];
+
+        // Gerar data aleatória no mês
+        const data = gerarDataNoMes(anoConsulta, mesConsulta);
+        const horario = gerarHorario();
+        const tipoPagamento = Math.random() > 0.4 ? "convenio" : "particular";
+        const convenio =
+          tipoPagamento === "convenio"
+            ? CONVENIOS[Math.floor(Math.random() * (CONVENIOS.length - 1))]
+            : undefined;
+
+        const consulta = gerarConsulta(
+          profissional,
+          pacienteInara.id,
+          pacienteInara.nome,
+          pacienteInara.sobrenome,
+          data,
+          horario,
+          tipoPagamento,
+          convenio
+        );
+
+        // Todas as consultas históricas são finalizadas
+        consulta.status = "finalizada";
+
+        consultasAdicionadas.push(consulta);
+      }
+    }
+  } else {
+    console.warn("⚠️ Paciente Inara (inara-paciente-001) não encontrado");
+  }
+
+  const consultasComoProfissional = consultasAdicionadas.filter(
+    (c) => c.profissionalId === "inara-profissional-001"
+  ).length;
+  const consultasComoPaciente = consultasAdicionadas.filter(
+    (c) => c.pacienteId === "inara-paciente-001"
+  ).length;
+
+  console.log(
+    `✅ Adicionadas ${consultasAdicionadas.length} consultas específicas para Inara`
+  );
+  console.log(
+    `   👨‍⚕️ Como profissional (nov/dez 2025): ${consultasComoProfissional} consultas`
+  );
+  console.log(
+    `   👤 Como paciente (histórico): ${consultasComoPaciente} consultas`
+  );
+
+  return [...consultas, ...consultasAdicionadas];
+};

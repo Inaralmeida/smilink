@@ -30,6 +30,10 @@ const Routes = () => {
                   <Route path={ROUTES.agendar} element={<Agenda />} />
                   <Route path={ROUTES.consultas.base} element={<Consultas />} />
                   <Route
+                    path={ROUTES.consultas.historicoProfissional}
+                    element={<Consultas />}
+                  />
+                  <Route
                     path="*"
                     element={<Typography variant="h1">404</Typography>}
                   />

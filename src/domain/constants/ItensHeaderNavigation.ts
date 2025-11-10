@@ -37,7 +37,7 @@ export const ItensHeaderNavigation: ItemHeaderNavigation[] = [
   {
     name: "Agendar",
     path: ROUTES.agendar,
-    permission: { admin: true, paciente: true, profissional: true },
+    permission: { admin: true, paciente: false, profissional: false },
     icon: EventIcon,
   },
   {

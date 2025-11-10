@@ -191,6 +191,99 @@ export const gerarAgendamentosIniciais = (
     agendamentos.push(agendamento);
   }
 
+  // Adicionar agendamentos específicos para o profissional Inara em novembro e dezembro de 2025
+  const profissionalInara = profissionaisAtivos.find(
+    (p) => p.id === "inara-profissional-001"
+  );
+
+  if (profissionalInara) {
+    const meses = [11, 12]; // Novembro e Dezembro
+    const ano = 2025;
+
+    meses.forEach((mes) => {
+      const diasNoMes = new Date(ano, mes, 0).getDate();
+
+      // Gerar agendamentos para TODOS os dias de novembro e dezembro
+      for (let dia = 1; dia <= diasNoMes; dia++) {
+        const data = `${ano}-${mes.toString().padStart(2, "0")}-${dia
+          .toString()
+          .padStart(2, "0")}`;
+
+        // Quantidade de agendamentos por dia (3-5)
+        const agendamentosPorDia = Math.floor(Math.random() * 3) + 3;
+
+        // Horários disponíveis (8h às 17h, intervalos de 30min)
+        const horariosDisponiveis: string[] = [];
+        for (let hora = 8; hora < 18; hora++) {
+          horariosDisponiveis.push(`${hora.toString().padStart(2, "0")}:00`);
+          if (hora < 17) {
+            horariosDisponiveis.push(`${hora.toString().padStart(2, "0")}:30`);
+          }
+        }
+
+        // Selecionar horários aleatórios para o dia
+        const horariosSelecionados = horariosDisponiveis
+          .sort(() => Math.random() - 0.5)
+          .slice(0, Math.min(agendamentosPorDia, horariosDisponiveis.length))
+          .sort();
+
+        horariosSelecionados.forEach((horario, index) => {
+          // Selecionar um paciente aleatório
+          const paciente =
+            pacientesAtivos[Math.floor(Math.random() * pacientesAtivos.length)];
+          const procedimento =
+            procedimentos[Math.floor(Math.random() * procedimentos.length)];
+          const duracao = duracaoPorProcedimento[procedimento] || 30;
+
+          // Determinar status baseado na data
+          const dataAgendamento = new Date(`${data}T${horario}`);
+          const hoje = new Date();
+          let status: StatusAgendamento = "agendado";
+
+          if (dataAgendamento < hoje) {
+            // Data passada - finalizado ou cancelado
+            status = Math.random() > 0.1 ? "finalizado" : "cancelado";
+          } else {
+            // Data futura - agendado
+            status = "agendado";
+          }
+
+          const agora = new Date();
+          const criadoEm = new Date(
+            agora.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000
+          ).toISOString();
+
+          const agendamento: TAgendamento = {
+            id: `agendamento-inara-${ano}-${mes}-${dia}-${index}-${Date.now()}`,
+            profissionalId: profissionalInara.id,
+            profissionalNome: profissionalInara.nome,
+            profissionalSobrenome: profissionalInara.sobrenome,
+            pacienteId: paciente.id,
+            pacienteNome: paciente.nome,
+            pacienteSobrenome: paciente.sobrenome,
+            data,
+            horario,
+            procedimento,
+            duracao,
+            status,
+            observacoes:
+              Math.random() > 0.8
+                ? `Observações do agendamento para ${data}`
+                : undefined,
+            criadoEm,
+            atualizadoEm: criadoEm,
+          };
+
+          agendamentos.push(agendamento);
+        });
+      }
+    });
+
+    console.log(
+      `✅ Adicionados agendamentos para profissional Inara em nov/dez 2025`
+    );
+  }
+
   return agendamentos;
 };
 

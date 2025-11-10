@@ -9,6 +9,7 @@ export const ROUTES = {
     nova: ":nova",
     detalhes: "/consultas/detalhes",
     editar: "/consultas/editar",
+    historicoProfissional: "/consultas/historico-profissional",
   },
   agendar: "/agendar",
   cadastro: "/cadastro",
