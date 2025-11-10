@@ -7,15 +7,12 @@ import DashboardProfissional from "../../module/Consultas/components/DashboardPr
 import DashboardAdmin from "../../module/Consultas/components/DashboardAdmin";
 import { IconLink } from "../../shared/components";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
-import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
 import { useState } from "react";
 import ModalNovaConsulta from "../../module/Consultas/ModalNovaConsulta";
-import ModalNovoPaciente from "../../module/Pacientes/ModalNovoPaciente/ModalNovoPaciente";
 
 const Home = () => {
   const role = getRole();
   const [openModalConsulta, setOpenModalConsulta] = useState(false);
-  const [openModalNovoPaciente, setOpenModalNovoPaciente] = useState(false);
   const isProfessional = role === "profissional";
   const isAdmin = role === "admin";
 

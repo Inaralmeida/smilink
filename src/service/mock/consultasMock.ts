@@ -621,13 +621,6 @@ export const gerarConsultasMock = (
     });
   });
 
-  // Contar consultas por status
-  const consultasFinalizadas = consultas.filter(
-    (c) => c.status === "finalizada"
-  ).length;
-  const consultasCanceladas = consultas.filter(
-    (c) => c.status === "cancelada"
-  ).length;
   return consultas;
 };
 
