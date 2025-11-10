@@ -5,9 +5,7 @@ import { setUser } from "./storage";
 export class UserService {
   constructor() {}
   login(email: string, password: string): TResponseLogin {
-    console.log({ password });
     const user = MOCK_USER.find((user) => user.email === email);
-    console.log(user);
     if (!user) {
       return {
         type: "email",

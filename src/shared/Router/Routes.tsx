@@ -3,7 +3,15 @@ import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { BrowserRouter, Route, Routes as Switch } from "react-router-dom";
 import { ThemeProvider as SCThemeProvider } from "styled-components";
 import { ROUTES } from "../../domain/constants/Routes";
-import { Home, Pacientes } from "../../pages";
+import {
+  Home,
+  Pacientes,
+  Profissional,
+  Agenda,
+  Consultas,
+  Estoque,
+  Perfil,
+} from "../../pages";
 import { Layout } from "../components";
 import { theme } from "../ui/style/theme";
 import PrivateRoute from "./PrivateRoute";
@@ -19,11 +27,22 @@ const Routes = () => {
           <CssBaseline />
           <AuthProvider>
             <Switch>
-              {/* --- Rotas Protegidas (Só para logados) --- */}
               <Route element={<PrivateRoute />}>
                 <Route element={<Layout />}>
                   <Route path={ROUTES.home} element={<Home />} />
                   <Route path={ROUTES.pacientes} element={<Pacientes />} />
+                  <Route
+                    path={ROUTES.profissionais}
+                    element={<Profissional />}
+                  />
+                  <Route path={ROUTES.agendar} element={<Agenda />} />
+                  <Route path={ROUTES.consultas.base} element={<Consultas />} />
+                  <Route
+                    path={ROUTES.consultas.historicoProfissional}
+                    element={<Consultas />}
+                  />
+                  <Route path={ROUTES.estoque} element={<Estoque />} />
+                  <Route path={ROUTES.perfil} element={<Perfil />} />
                   <Route
                     path="*"
                     element={<Typography variant="h1">404</Typography>}
@@ -31,12 +50,10 @@ const Routes = () => {
                 </Route>
               </Route>
 
-              {/* --- Rotas Públicas (Só para NÃO logados) --- */}
               <Route element={<PublicRoute />}>
                 <Route path={ROUTES.auth.login} element={<Login />} />
               </Route>
 
-              {/* Rota 404 geral (pode ser ajustada) */}
               <Route
                 path={ROUTES.notFound}
                 element={<Typography variant="h1">404</Typography>}

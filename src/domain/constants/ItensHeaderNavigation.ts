@@ -30,14 +30,14 @@ export const ItensHeaderNavigation: ItemHeaderNavigation[] = [
   },
   {
     name: "Consultas",
-    path: ROUTES.consultas,
+    path: ROUTES.consultas.base,
     permission: { admin: true, paciente: true, profissional: true },
     icon: CalendarMonthIcon,
   },
   {
     name: "Agendar",
     path: ROUTES.agendar,
-    permission: { admin: true, paciente: true, profissional: true },
+    permission: { admin: true, paciente: false, profissional: false },
     icon: EventIcon,
   },
   {

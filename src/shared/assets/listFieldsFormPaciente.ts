@@ -1,0 +1,156 @@
+export const LIST_FIELDS_PACIENTE = [
+  {
+    name: "Dados Pessoais",
+    fields: [
+      {
+        fieldName: "name",
+        type: "text",
+        required: true,
+        label: "Nome Completo",
+        size: 12,
+      },
+      {
+        fieldName: "email",
+        type: "email",
+        required: true,
+        label: "E-mail",
+        size: 12,
+      },
+      {
+        fieldName: "data_nascimento",
+        type: "date",
+        required: true,
+        label: "Data de Nascimento",
+        size: 6,
+      },
+      {
+        fieldName: "CPF",
+        type: "text",
+        required: true,
+        label: "CPF",
+        size: 6,
+      },
+      {
+        fieldName: "telefone",
+        type: "text",
+        required: true,
+        label: "Telefone",
+        size: 6,
+      },
+      {
+        fieldName: "tem_plano_saude",
+        type: "switch",
+        required: true,
+        label: "Nome",
+        size: 6,
+      },
+    ],
+  },
+  {
+    name: "Responsavel",
+    fields: [
+      {
+        fieldName: "name_responsible",
+        type: "text",
+        required: true,
+        label: "Nome",
+        size: 6,
+      },
+      {
+        fieldName: "cpf_responsible",
+        type: "text",
+        required: true,
+        label: "CPF",
+        size: 6,
+      },
+      {
+        fieldName: "grau_parentesco",
+        type: "text",
+        required: true,
+        label: "Grau de Parentesco",
+        size: 6,
+      },
+
+      {
+        fieldName: "tel_responsible",
+        type: "text",
+        required: true,
+        label: "Telefone de contato",
+        size: 6,
+      },
+    ],
+  },
+  {
+    name: "Endereço",
+    fields: [
+      {
+        fieldName: "cep",
+        type: "text",
+        required: true,
+        label: "CEP",
+        size: 12,
+      },
+      {
+        fieldName: "street",
+        type: "text",
+        required: true,
+        label: "Logradouro",
+        size: 6,
+      },
+      {
+        fieldName: "number",
+        type: "text",
+        required: true,
+        label: "Numero",
+        size: 6,
+      },
+      {
+        fieldName: "complemento",
+        type: "text",
+        required: false,
+        label: "Complemento",
+        size: 6,
+      },
+      {
+        fieldName: "neigborhood",
+        type: "text",
+        required: true,
+        label: "Bairro",
+        size: 6,
+      },
+      {
+        fieldName: "city",
+        type: "text",
+        required: true,
+        label: "Cidade",
+        size: 6,
+      },
+      {
+        fieldName: "state",
+        type: "text",
+        required: true,
+        label: "Estado",
+        size: 6,
+      },
+    ],
+  },
+  {
+    name: "Plano de saúde",
+    fields: [
+      {
+        fieldName: "name_plano_saude",
+        type: "text",
+        required: true,
+        label: "Nome do Plano de saúde",
+        size: 6,
+      },
+      {
+        fieldName: "numero_careteirinha",
+        type: "text",
+        required: true,
+        label: "Numero da Carteirinha",
+        size: 6,
+      },
+    ],
+  },
+];

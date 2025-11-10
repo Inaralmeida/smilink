@@ -4,18 +4,36 @@ interface IconLinkProps {
   Icon: React.ComponentType<any>;
   label: string;
   value: string;
-  link: string;
+  link?: string;
   onClick?: (event: any) => void;
+  backgroundColor?: boolean;
+  color: "blue" | "white";
 }
 
-const IconLink = ({ Icon, label, value, link, onClick }: IconLinkProps) => {
+const IconLink = ({
+  Icon,
+  label,
+  value,
+  link,
+  onClick,
+  backgroundColor = false,
+  color = "white",
+}: IconLinkProps) => {
   return (
     <BottomNavigationAction
       sx={(theme) => ({
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
+        backgroundColor: backgroundColor
+          ? theme.palette.primary.main
+          : "transparent",
+        color:
+          color === "white"
+            ? theme.palette.primary.contrastText
+            : theme.palette.primary.main,
         "&.Mui-selected": {
-          color: theme.palette.primary.contrastText,
+          color:
+            color === "white"
+              ? theme.palette.primary.contrastText
+              : theme.palette.primary.main,
         },
         "@media screen and (max-width: 600px)": {
           width: "100%",
@@ -31,7 +49,7 @@ const IconLink = ({ Icon, label, value, link, onClick }: IconLinkProps) => {
       label={label}
       icon={<Icon />}
       value={value}
-      href={link}
+      href={link ?? ""}
       onClick={onClick}
     />
   );

@@ -8,6 +8,7 @@ const BoxContainer = ({ children }: { children: React.ReactNode }) => {
     <Box
       sx={{
         width: "95%",
+        maxWidth: "1480px",
         margin: "0 auto",
         my: "12px",
         height: "100%",
@@ -27,3 +28,4 @@ const BoxContainer = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default BoxContainer;
+
