@@ -172,9 +172,7 @@ const DashboardAdmin = () => {
 
     return {
       atendidosNoMes:
-        totalConsultasFinalizadas > 0
-          ? Math.max(totalPacientesUnicos, 1)
-          : 0,
+        totalConsultasFinalizadas > 0 ? Math.max(totalPacientesUnicos, 1) : 0,
       total: pacientes.length,
     };
   }, [consultasDoMes, pacientes.length]);
