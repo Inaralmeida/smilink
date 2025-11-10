@@ -628,21 +628,6 @@ export const gerarConsultasMock = (
   const consultasCanceladas = consultas.filter(
     (c) => c.status === "cancelada"
   ).length;
-  const consultasPorMes = consultas.reduce((acc, c) => {
-    const mes = c.data.substring(0, 7); // YYYY-MM
-    acc[mes] = (acc[mes] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  console.log(`✅ Geradas ${consultas.length} consultas no total`);
-  console.log(`   📊 Finalizadas: ${consultasFinalizadas}`);
-  console.log(`   ❌ Canceladas: ${consultasCanceladas}`);
-  console.log(`👥 ${pacientesIds.length} pacientes únicos`);
-  console.log(
-    `😴 ${idsParaInativar.length} pacientes inativos (última consulta há 6+ meses)`
-  );
-  console.log(`📅 Consultas por mês:`, consultasPorMes);
-
   return consultas;
 };
 
@@ -716,9 +701,6 @@ export const adicionarConsultasInara = (
   const pacienteInara = pacientes.find((p) => p.id === "inara-paciente-001");
 
   if (!profissionalInara) {
-    console.warn(
-      "⚠️ Profissional Inara (inara-profissional-001) não encontrado"
-    );
     return consultas;
   }
 

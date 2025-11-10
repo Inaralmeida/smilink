@@ -278,10 +278,6 @@ export const gerarAgendamentosIniciais = (
         });
       }
     });
-
-    console.log(
-      `✅ Adicionados agendamentos para profissional Inara em nov/dez 2025`
-    );
   }
 
   return agendamentos;

@@ -97,26 +97,13 @@ export const fetchConsultas = async (): Promise<TConsulta[]> => {
   await garantirConsultaDemonstracao();
 
   const consultas = storage.get<TConsulta[]>(STORAGE_KEYS.CONSULTAS, []);
-  console.log(`📋 fetchConsultas: ${consultas.length} consultas encontradas`);
-
-  // Garantir que todas as consultas passadas tenham receita e atestado padrão
   const consultasComReceitaEAtestado =
     garantirReceitaEAtestadoParaConsultasPassadas(consultas);
 
-  // Salvar de volta no storage para persistir
   if (consultasComReceitaEAtestado.length > 0) {
     storage.set(STORAGE_KEYS.CONSULTAS, consultasComReceitaEAtestado);
   }
 
-  if (consultasComReceitaEAtestado.length > 0) {
-    // Log da distribuição por mês
-    const distribuicaoPorMes = consultasComReceitaEAtestado.reduce((acc, c) => {
-      const mes = c.data.substring(0, 7); // YYYY-MM
-      acc[mes] = (acc[mes] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    console.log("📊 Distribuição por mês:", distribuicaoPorMes);
-  }
   return consultasComReceitaEAtestado;
 };
 
@@ -440,50 +427,30 @@ const gerarHistoricoConsultasParaPaciente = async (
 export const fetchConsultasPorPaciente = async (
   pacienteId: string
 ): Promise<TConsulta[]> => {
-  console.log(
-    `📋 fetchConsultasPorPaciente: Buscando consultas para paciente ${pacienteId}`
-  );
-
   if (!pacienteId) {
-    console.warn("⚠️ fetchConsultasPorPaciente: pacienteId vazio");
     return [];
   }
 
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  // Garantir consulta de demonstração antes de buscar
   await garantirConsultaDemonstracao();
 
-  // Buscar consultas existentes
   const consultasExistentes = await fetchConsultas();
-  console.log(
-    `📊 Total de consultas no sistema: ${consultasExistentes.length}`
-  );
 
   const consultasDoPaciente = consultasExistentes.filter(
     (c) => c.pacienteId === pacienteId
   );
-  console.log(
-    `📊 Consultas do paciente ${pacienteId}: ${consultasDoPaciente.length}`
-  );
 
-  // Se já tem consultas (pelo menos 20), adicionar consulta de demonstração se não estiver incluída
   if (consultasDoPaciente.length >= 20) {
-    console.log(
-      `✅ Retornando ${consultasDoPaciente.length} consultas existentes`
-    );
-    // Adicionar consulta de demonstração se for do paciente ou sempre mostrar
     const consultaDemo = consultasExistentes.find(
       (c) => c.id === "consulta-demonstracao"
     );
     if (consultaDemo) {
-      // Se a consulta de demonstração é do paciente, já está incluída
       if (consultaDemo.pacienteId === pacienteId) {
         return garantirReceitaEAtestadoParaConsultasPassadas(
           consultasDoPaciente
         );
       }
-      // Se não é do paciente, ainda assim mostrar no histórico (pode ser útil para demo)
       return garantirReceitaEAtestadoParaConsultasPassadas([
         consultaDemo,
         ...consultasDoPaciente,
@@ -492,61 +459,32 @@ export const fetchConsultasPorPaciente = async (
     return garantirReceitaEAtestadoParaConsultasPassadas(consultasDoPaciente);
   }
 
-  console.log(
-    `🔄 Gerando histórico de consultas (atual: ${consultasDoPaciente.length}, necessário: 20+)`
-  );
-
-  // PRIMEIRO: Buscar dados do usuário logado do localStorage (mais confiável)
   let pacienteNome = "";
   let pacienteSobrenome = "";
   let tipoPagamento: TipoPagamento = "particular";
   let convenio: string | undefined;
 
   try {
-    // Tentar ambas as chaves possíveis
     let userString = localStorage.getItem("user");
     if (!userString) {
       userString = localStorage.getItem("smilink_user");
     }
 
-    console.log(`🔍 Buscando usuário logado para pacienteId: ${pacienteId}`);
-    console.log(
-      `📦 Chave "user":`,
-      localStorage.getItem("user") ? "existe" : "não existe"
-    );
-    console.log(
-      `📦 Chave "smilink_user":`,
-      localStorage.getItem("smilink_user") ? "existe" : "não existe"
-    );
-
     if (userString) {
       const user = JSON.parse(userString);
-      console.log(`👤 Usuário encontrado:`, {
-        id: user.id,
-        nome: user.nome,
-        role: user.role,
-      });
 
-      // Se o usuário logado é paciente e o ID corresponde, usar seus dados
       if (user.role === "paciente" && user.id === pacienteId) {
         pacienteNome = user.nome || "";
         pacienteSobrenome = user.sobrenome || "";
-        tipoPagamento = "particular"; // Default
+        tipoPagamento = "particular";
         convenio = undefined;
-        console.log(
-          `✅ Dados do paciente obtidos do usuário logado: ${pacienteNome} ${pacienteSobrenome}`
-        );
       }
     }
   } catch (error) {
-    console.error("❌ Erro ao buscar usuário do localStorage:", error);
+    // Ignorar erro
   }
 
-  // SEGUNDO: Se não encontrou no localStorage, buscar na lista de pacientes do sistema
   if (!pacienteNome || !pacienteSobrenome) {
-    console.log(
-      `🔍 Buscando paciente ${pacienteId} na lista de pacientes do sistema...`
-    );
     const { fetchPacienteById } = await import("./pacientes");
     const paciente = await fetchPacienteById(pacienteId);
 
@@ -555,15 +493,10 @@ export const fetchConsultasPorPaciente = async (
       pacienteSobrenome = paciente.sobrenome;
       tipoPagamento = paciente.tem_plano_saude ? "convenio" : "particular";
       convenio = paciente.name_plano_saude;
-      console.log(
-        `✅ Dados do paciente obtidos da lista de pacientes: ${pacienteNome} ${pacienteSobrenome}`
-      );
     }
   }
 
-  // TERCEIRO: Se ainda não encontrou, buscar no MOCK_USER
   if (!pacienteNome || !pacienteSobrenome) {
-    console.log(`🔍 Buscando paciente ${pacienteId} no MOCK_USER...`);
     try {
       const { MOCK_USER } = await import("./user");
       const usuarioPaciente = MOCK_USER.find(
@@ -575,22 +508,16 @@ export const fetchConsultasPorPaciente = async (
         pacienteSobrenome = usuarioPaciente.sobrenome || "Anônimo";
         tipoPagamento = "particular";
         convenio = undefined;
-        console.log(
-          `✅ Dados obtidos do MOCK_USER: ${pacienteNome} ${pacienteSobrenome}`
-        );
       }
     } catch (error) {
-      console.error("❌ Erro ao buscar no MOCK_USER:", error);
+      // Ignorar erro
     }
   }
 
-  // Se ainda não tem nome, não pode gerar consultas
   if (!pacienteNome || !pacienteSobrenome) {
-    console.error(`❌ Paciente ${pacienteId} não encontrado em nenhum lugar`);
-    return consultasDoPaciente; // Retornar as que já existem (se houver)
+    return consultasDoPaciente;
   }
 
-  // Gerar histórico de consultas completo (sempre gerar pelo menos 20)
   const historicoConsultas = await gerarHistoricoConsultasParaPaciente(
     pacienteId,
     pacienteNome,
@@ -599,20 +526,15 @@ export const fetchConsultasPorPaciente = async (
     convenio
   );
 
-  // Se já tinha algumas consultas, substituir todas pelas novas para garantir histórico completo
   const consultasParaAdicionar = historicoConsultas;
 
-  // Se já tinha consultas, remover as antigas e adicionar as novas
-  // Caso contrário, apenas adicionar as novas
   const todasConsultas = await fetchConsultas();
   const consultasSemEstePaciente = todasConsultas.filter(
-    (c) => c.pacienteId !== pacienteId && c.id !== "consulta-demonstracao" // Preservar consulta de demonstração
+    (c) => c.pacienteId !== pacienteId && c.id !== "consulta-demonstracao"
   );
 
-  // Adicionar novas consultas
   consultasSemEstePaciente.push(...consultasParaAdicionar);
 
-  // Garantir que consulta de demonstração seja preservada
   const consultaDemo = todasConsultas.find(
     (c) => c.id === "consulta-demonstracao"
   );
@@ -622,12 +544,6 @@ export const fetchConsultasPorPaciente = async (
 
   storage.set(STORAGE_KEYS.CONSULTAS, consultasSemEstePaciente);
 
-  console.log(
-    `✅ Gerado histórico de ${consultasParaAdicionar.length} consultas para paciente ${pacienteNome} ${pacienteSobrenome} (ID: ${pacienteId})`
-  );
-
-  // Retornar consultas do paciente com receita e atestado padrão
-  // A consulta de demonstração será incluída se for do paciente (via fetchConsultasPorPaciente)
   return garantirReceitaEAtestadoParaConsultasPassadas(consultasParaAdicionar);
 };
 
@@ -834,34 +750,26 @@ export const garantirConsultaDemonstracao = async (): Promise<void> => {
   );
 
   if (consultaDemonstracao) {
-    console.log("✅ Consulta de demonstração já existe");
     return;
   }
 
-  // Remover consultas de demonstração antigas
   const consultasSemDemonstracao = consultas.filter(
     (c) => c.id !== "consulta-demonstracao"
   );
 
-  // Buscar profissionais e pacientes
   const { fetchProfissionais } = await import("./profissionais");
   const { fetchPacientes } = await import("./pacientes");
   const profissionais = await fetchProfissionais();
   const pacientes = await fetchPacientes();
 
   if (profissionais.length === 0 || pacientes.length === 0) {
-    console.warn(
-      "⚠️ Não há profissionais ou pacientes para criar consulta de demonstração"
-    );
     return;
   }
 
-  // Selecionar profissional e paciente aleatórios
   const profissional =
     profissionais[Math.floor(Math.random() * profissionais.length)];
   const paciente = pacientes[Math.floor(Math.random() * pacientes.length)];
 
-  // Criar consulta de demonstração para hoje, horário próximo ao atual
   const horas = agora.getHours();
   const minutos = agora.getMinutes();
   const horarioInicio = `${horas.toString().padStart(2, "0")}:${minutos
@@ -879,7 +787,7 @@ export const garantirConsultaDemonstracao = async (): Promise<void> => {
     pacienteSobrenome: paciente.sobrenome,
     data: hoje,
     horario: horarioInicio,
-    horarioInicio: undefined, // Ainda não iniciada
+    horarioInicio: undefined,
     horarioFim: undefined,
     procedimentoPrincipal: "Consulta de Rotina",
     procedimentosRealizados: ["Consulta de Rotina"],
@@ -887,7 +795,7 @@ export const garantirConsultaDemonstracao = async (): Promise<void> => {
     equipamentosUtilizados: [],
     examesSolicitados: [],
     observacoes: "Consulta de demonstração - Sistema Smilink",
-    status: "agendada", // Status inicial: agendada (prestes a começar)
+    status: "agendada",
     tipoPagamento: paciente.tem_plano_saude ? "convenio" : "particular",
     convenio: paciente.name_plano_saude,
     criadoEm: new Date().toISOString(),
@@ -896,8 +804,6 @@ export const garantirConsultaDemonstracao = async (): Promise<void> => {
 
   consultasSemDemonstracao.push(consultaDemonstracaoNova);
   storage.set(STORAGE_KEYS.CONSULTAS, consultasSemDemonstracao);
-
-  console.log("✅ Consulta de demonstração criada:", consultaDemonstracaoNova);
 };
 
 /**

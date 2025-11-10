@@ -4,6 +4,7 @@ import { getRole } from "../../service/http/storage";
 import BoxContainer from "../../shared/components/BoxContainer/BoxContainer";
 import DashboardPaciente from "../../module/dashboard/DashboardPaciente";
 import DashboardProfissional from "../../module/Consultas/components/DashboardProfissional";
+import DashboardAdmin from "../../module/Consultas/components/DashboardAdmin";
 import { IconLink } from "../../shared/components";
 import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
@@ -21,8 +22,9 @@ const Home = () => {
   return (
     <BoxContainer>
       {isProfessional ? (
-        // Dashboard do Profissional
         <DashboardProfissional />
+      ) : isAdmin ? (
+        <DashboardAdmin />
       ) : (
         <>
           <Box
@@ -43,42 +45,21 @@ const Home = () => {
             </Typography>
 
             <Box>
-              {!isProfessional && (
-                <IconLink
-                  Icon={NoteAddIcon}
-                  label="Nova consulta"
-                  value="nova_consulta"
-                  onClick={() => setOpenModalConsulta(true)}
-                  color="blue"
-                />
-              )}
-
-              {isAdmin && (
-                <IconLink
-                  Icon={PersonAddAlt1Icon}
-                  label="Novo Paciente"
-                  value="novo_paciente"
-                  onClick={() => setOpenModalNovoPaciente(true)}
-                  color="blue"
-                />
-              )}
+              <IconLink
+                Icon={NoteAddIcon}
+                label="Nova consulta"
+                value="nova_consulta"
+                onClick={() => setOpenModalConsulta(true)}
+                color="blue"
+              />
             </Box>
           </Box>
           <DashboardPaciente />
 
-          {!isProfessional && (
-            <ModalNovaConsulta
-              onClose={() => setOpenModalConsulta(false)}
-              open={openModalConsulta}
-            />
-          )}
-
-          {isAdmin && (
-            <ModalNovoPaciente
-              onClose={() => setOpenModalNovoPaciente(false)}
-              open={openModalNovoPaciente}
-            />
-          )}
+          <ModalNovaConsulta
+            onClose={() => setOpenModalConsulta(false)}
+            open={openModalConsulta}
+          />
         </>
       )}
     </BoxContainer>

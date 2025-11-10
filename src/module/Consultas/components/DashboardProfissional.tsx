@@ -119,51 +119,15 @@ const DashboardProfissional = () => {
     try {
       const todosAgendamentos = await fetchAgendamentos();
 
-      console.log("🔍 DashboardProfissional - Carregando agendamentos:");
-      console.log(`   User ID: ${user.id}`);
-      console.log(
-        `   Total agendamentos no sistema: ${todosAgendamentos.length}`
-      );
-
-      // Filtrar apenas agendamentos do profissional logado (sem filtrar por mês)
-      // O React-Big-Calendar vai filtrar automaticamente baseado na view atual
       const agendamentosDoProfissional = todosAgendamentos.filter((ag) => {
         if (ag.profissionalId !== user.id) return false;
         if (ag.status === "cancelado") return false;
         return true;
       });
 
-      console.log(
-        `   Agendamentos do profissional (todos os meses): ${agendamentosDoProfissional.length}`
-      );
-
-      // Agrupar por mês para debug
-      const agendamentosPorMes = agendamentosDoProfissional.reduce(
-        (acc, ag) => {
-          const mes = ag.data.substring(0, 7); // YYYY-MM
-          acc[mes] = (acc[mes] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
-
-      console.log("   Agendamentos por mês:", agendamentosPorMes);
-
-      if (agendamentosDoProfissional.length > 0) {
-        console.log(
-          "   Primeiros agendamentos:",
-          agendamentosDoProfissional.slice(0, 5).map((ag) => ({
-            data: ag.data,
-            horario: ag.horario,
-            paciente: `${ag.pacienteNome} ${ag.pacienteSobrenome}`,
-            status: ag.status,
-          }))
-        );
-      }
-
       setAgendamentos(agendamentosDoProfissional);
     } catch (error) {
-      console.error("Erro ao carregar agendamentos:", error);
+      // Ignorar erro
     } finally {
       setLoadingAgendamentos(false);
     }
@@ -173,11 +137,7 @@ const DashboardProfissional = () => {
     carregarAgendamentos();
   }, [carregarAgendamentos]);
 
-  // Converter agendamentos para eventos do calendário
   const eventos = useMemo<EventAgendamento[]>(() => {
-    console.log(
-      `📅 Convertendo ${agendamentos.length} agendamentos para eventos do calendário`
-    );
     return agendamentos.map((agendamento) => {
       const [hora, minuto] = agendamento.horario.split(":").map(Number);
       const [ano, mes, dia] = agendamento.data.split("-").map(Number);

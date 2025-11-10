@@ -60,13 +60,12 @@ const ModalDetalhesConsultaPaciente = ({
       setDiasAtestado(consulta.atestado?.dias || 3);
       setEmitirAtestado(consulta.atestado?.emitido || false);
 
-      // Buscar dados do profissional
       const buscarProfissional = async () => {
         try {
           const prof = await fetchProfissionalById(consulta.profissionalId);
           setProfissional(prof);
         } catch (err) {
-          console.error("Erro ao buscar profissional:", err);
+          // Ignorar erro
         }
       };
       buscarProfissional();
@@ -142,117 +141,63 @@ const ModalDetalhesConsultaPaciente = ({
   };
 
   const handleDownloadReceita = async () => {
-    console.log("🔵 [handleDownloadReceita] Iniciando download da receita");
-    console.log("🔵 [handleDownloadReceita] Consulta:", consulta);
-    console.log(
-      "🔵 [handleDownloadReceita] Profissional (estado):",
-      profissional
-    );
-
     if (!consulta) {
-      console.error("❌ [handleDownloadReceita] Consulta não encontrada");
       setError("Consulta não encontrada");
       return;
     }
 
-    // Buscar profissional se não estiver disponível
     let profissionalParaUsar = profissional;
     if (!profissionalParaUsar) {
-      console.log(
-        "🔵 [handleDownloadReceita] Profissional não carregado, buscando..."
-      );
       try {
         profissionalParaUsar = await fetchProfissionalById(
           consulta.profissionalId
         );
-        console.log(
-          "🔵 [handleDownloadReceita] Profissional buscado:",
-          profissionalParaUsar
-        );
         setProfissional(profissionalParaUsar);
       } catch (err) {
-        console.error(
-          "❌ [handleDownloadReceita] Erro ao buscar profissional:",
-          err
-        );
         setError("Erro ao buscar dados do profissional");
         return;
       }
     }
 
     if (!profissionalParaUsar) {
-      console.error("❌ [handleDownloadReceita] Profissional não encontrado");
       setError("Profissional não encontrado");
       return;
     }
 
     try {
-      console.log("🔵 [handleDownloadReceita] Chamando gerarPDFReceita...");
       await gerarPDFReceita(consulta, profissionalParaUsar);
-      console.log("✅ [handleDownloadReceita] PDF gerado com sucesso");
     } catch (error) {
-      console.error(
-        "❌ [handleDownloadReceita] Erro ao gerar PDF da receita:",
-        error
-      );
       setError("Erro ao gerar PDF da receita");
     }
   };
 
   const handleDownloadAtestado = async () => {
-    console.log("🟢 [handleDownloadAtestado] Iniciando download do atestado");
-    console.log("🟢 [handleDownloadAtestado] Consulta:", consulta);
-    console.log(
-      "🟢 [handleDownloadAtestado] Profissional (estado):",
-      profissional
-    );
-
     if (!consulta) {
-      console.error("❌ [handleDownloadAtestado] Consulta não encontrada");
       setError("Consulta não encontrada");
       return;
     }
 
-    // Buscar profissional se não estiver disponível
     let profissionalParaUsar = profissional;
     if (!profissionalParaUsar) {
-      console.log(
-        "🟢 [handleDownloadAtestado] Profissional não carregado, buscando..."
-      );
       try {
         profissionalParaUsar = await fetchProfissionalById(
           consulta.profissionalId
         );
-        console.log(
-          "🟢 [handleDownloadAtestado] Profissional buscado:",
-          profissionalParaUsar
-        );
         setProfissional(profissionalParaUsar);
       } catch (err) {
-        console.error(
-          "❌ [handleDownloadAtestado] Erro ao buscar profissional:",
-          err
-        );
         setError("Erro ao buscar dados do profissional");
         return;
       }
     }
 
     if (!profissionalParaUsar) {
-      console.error("❌ [handleDownloadAtestado] Profissional não encontrado");
       setError("Profissional não encontrado");
       return;
     }
 
     try {
-      console.log("🟢 [handleDownloadAtestado] Chamando gerarPDFAtestado...");
       await gerarPDFAtestado(consulta, profissionalParaUsar);
-      console.log("✅ [handleDownloadAtestado] PDF gerado com sucesso");
     } catch (error) {
-      console.error(
-        "❌ [handleDownloadAtestado] Erro ao gerar PDF do atestado:",
-        error
-      );
       setError("Erro ao gerar PDF do atestado");
     }
   };
@@ -457,10 +402,7 @@ const ModalDetalhesConsultaPaciente = ({
                     variant="outlined"
                     size="small"
                     startIcon={<DownloadIcon />}
-                    onClick={() => {
-                      console.log("🖱️ [Button] Botão Baixar Receita clicado!");
-                      handleDownloadReceita();
-                    }}
+                    onClick={handleDownloadReceita}
                   >
                     Baixar Receita
                   </Button>
@@ -546,10 +488,7 @@ const ModalDetalhesConsultaPaciente = ({
                     variant="outlined"
                     size="small"
                     startIcon={<DownloadIcon />}
-                    onClick={() => {
-                      console.log("🖱️ [Button] Botão Baixar Atestado clicado!");
-                      handleDownloadAtestado();
-                    }}
+                    onClick={handleDownloadAtestado}
                   >
                     Baixar Atestado
                   </Button>

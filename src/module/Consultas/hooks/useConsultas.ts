@@ -33,11 +33,7 @@ export const useConsultas = () => {
   useEffect(() => {
     carregarConsultas();
 
-    // Listener para recarregar quando consultas forem regeneradas
     const handleConsultasRegeneradas = () => {
-      console.log(
-        "🔄 Evento de regeneração recebido, recarregando consultas..."
-      );
       carregarConsultas();
     };
 
@@ -46,7 +42,6 @@ export const useConsultas = () => {
       handleConsultasRegeneradas
     );
 
-    // Recarregar após um delay inicial para garantir que dados foram gerados
     const timer = setTimeout(() => {
       carregarConsultas();
     }, 2000);
@@ -108,25 +103,17 @@ export const useConsultasPorPaciente = (pacienteId: string) => {
 
   const carregarConsultas = useCallback(async () => {
     if (!pacienteId) {
-      console.warn("⚠️ useConsultasPorPaciente: pacienteId vazio");
       return;
     }
 
-    console.log(
-      `🔄 useConsultasPorPaciente: Carregando consultas para paciente ${pacienteId}`
-    );
     setLoading(true);
     setError(null);
     try {
       const dados = await fetchConsultasPorPaciente(pacienteId);
-      console.log(
-        `✅ useConsultasPorPaciente: ${dados.length} consultas carregadas`
-      );
       setConsultas(dados);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Erro ao carregar consultas";
-      console.error(`❌ useConsultasPorPaciente:`, errorMessage);
       setError(errorMessage);
     } finally {
       setLoading(false);

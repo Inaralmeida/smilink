@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -12,8 +12,18 @@ import {
   useTheme,
   IconButton,
   Tooltip as MuiTooltip,
+  Button,
+  Alert,
+  Chip,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import EventIcon from "@mui/icons-material/Event";
+import WarningIcon from "@mui/icons-material/Warning";
+import ErrorIcon from "@mui/icons-material/Error";
 import {
   PieChart,
   Pie,
@@ -21,8 +31,8 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -30,7 +40,6 @@ import {
 import { useConsultas } from "../hooks/useConsultas";
 import { fetchPacientes } from "../../../service/mock/pacientes";
 import type { TPaciente } from "../../../domain/types/paciente";
-import { useEffect } from "react";
 import { regenerarConsultas } from "../../../shared/utils/localStorage";
 import {
   format,
@@ -38,8 +47,16 @@ import {
   endOfMonth,
   eachMonthOfInterval,
   subMonths,
+  endOfWeek,
+  eachWeekOfInterval,
+  isWithinInterval,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../domain/constants/Routes";
+import { fetchProfissionais } from "../../../service/mock/profissionais";
+import type { TProfissional } from "../../../domain/types/profissional";
+import { useEstoque } from "../../Estoque/hooks/useEstoque";
 
 const COLORS = [
   "#037F8C",
@@ -56,8 +73,11 @@ const COLORS = [
 
 const DashboardAdmin = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { consultas, carregarConsultas } = useConsultas();
+  const { itens: itensEstoque } = useEstoque();
   const [pacientes, setPacientes] = useState<TPaciente[]>([]);
+  const [profissionais, setProfissionais] = useState<TProfissional[]>([]);
   const [mesSelecionado, setMesSelecionado] = useState<string>(
     format(new Date(), "yyyy-MM")
   );
@@ -66,68 +86,28 @@ const DashboardAdmin = () => {
   useEffect(() => {
     carregarConsultas();
     fetchPacientes().then(setPacientes);
+    fetchProfissionais().then(setProfissionais);
   }, [carregarConsultas]);
 
   const handleRegenerarConsultas = async () => {
     setRegenerando(true);
     try {
       await regenerarConsultas();
-      // Recarregar consultas após regenerar
       await carregarConsultas();
-      // Disparar evento para outros componentes também recarregarem
       window.dispatchEvent(new Event("consultas-regeneradas"));
-    } catch (error) {
-      console.error("Erro ao regenerar consultas:", error);
+    } catch {
+      // Ignorar erro
     } finally {
       setRegenerando(false);
     }
   };
 
-  // Debug: log quando consultas mudarem
-  useEffect(() => {
-    console.log(`📊 DashboardAdmin: ${consultas.length} consultas carregadas`);
-    console.log(`📅 Mês selecionado: ${mesSelecionado}`);
-
-    const consultasDoMesFiltradas = consultas.filter((consulta) => {
-      const [anoConsulta, mesConsulta] = consulta.data.split("-").map(Number);
-      const [ano, mes] = mesSelecionado.split("-").map(Number);
-      return anoConsulta === ano && mesConsulta === mes;
-    });
-    console.log(
-      `📊 Consultas do mês ${mesSelecionado}: ${consultasDoMesFiltradas.length}`
-    );
-
-    const canceladas = consultasDoMesFiltradas.filter(
-      (c) => c.status === "cancelada"
-    ).length;
-    const finalizadas = consultasDoMesFiltradas.filter(
-      (c) => c.status === "finalizada"
-    ).length;
-    console.log(`   ❌ Canceladas: ${canceladas}`);
-    console.log(`   ✅ Finalizadas: ${finalizadas}`);
-
-    if (consultas.length > 0) {
-      const distribuicao = consultas.reduce((acc, c) => {
-        const mes = c.data.substring(0, 7);
-        acc[mes] = (acc[mes] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      console.log("📊 Distribuição de consultas:", distribuicao);
-    } else {
-      console.warn(
-        "⚠️ Nenhuma consulta encontrada! Verifique se os dados foram gerados."
-      );
-    }
-  }, [consultas, mesSelecionado]);
-
-  // Filtrar consultas do mês selecionado
   const consultasDoMes = useMemo(() => {
     const [ano, mes] = mesSelecionado.split("-").map(Number);
     const inicioMes = startOfMonth(new Date(ano, mes - 1));
     const fimMes = endOfMonth(new Date(ano, mes - 1));
 
     return consultas.filter((consulta) => {
-      // Parse da data no formato YYYY-MM-DD como data local
       const [anoConsulta, mesConsulta, diaConsulta] = consulta.data
         .split("-")
         .map(Number);
@@ -136,18 +116,18 @@ const DashboardAdmin = () => {
     });
   }, [consultas, mesSelecionado]);
 
-  // Métricas básicas
   const metricas = useMemo(() => {
-    const realizadas = consultasDoMes.filter(
+    const consultasFinalizadas = consultasDoMes.filter(
       (c) => c.status === "finalizada"
-    ).length;
+    );
+    const realizadas = consultasFinalizadas.length;
     const canceladas = consultasDoMes.filter(
       (c) => c.status === "cancelada"
     ).length;
-    const convenio = consultasDoMes.filter(
+    const convenio = consultasFinalizadas.filter(
       (c) => c.tipoPagamento === "convenio"
     ).length;
-    const particular = consultasDoMes.filter(
+    const particular = consultasFinalizadas.filter(
       (c) => c.tipoPagamento === "particular"
     ).length;
 
@@ -159,7 +139,6 @@ const DashboardAdmin = () => {
     };
   }, [consultasDoMes]);
 
-  // Gráfico de pizza dos profissionais
   const dadosProfissionais = useMemo(() => {
     const profissionaisMap = new Map<string, number>();
 
@@ -179,13 +158,16 @@ const DashboardAdmin = () => {
       .slice(0, 10);
   }, [consultasDoMes]);
 
-  // Pacientes novos, inativos e constantes
   const pacientesMetricas = useMemo(() => {
+    const pacientesIdsSet = new Set(pacientes.map((p) => p.id));
     const pacientesAtendidosNoMes = new Set<string>();
+
     consultasDoMes
       .filter((c) => c.status === "finalizada")
       .forEach((consulta) => {
-        pacientesAtendidosNoMes.add(consulta.pacienteId);
+        if (pacientesIdsSet.has(consulta.pacienteId)) {
+          pacientesAtendidosNoMes.add(consulta.pacienteId);
+        }
       });
 
     const hoje = new Date();
@@ -201,12 +183,10 @@ const DashboardAdmin = () => {
 
     pacientes.forEach((paciente) => {
       if (pacientesAtendidosNoMes.has(paciente.id)) {
-        // Verificar se é novo (primeira consulta no mês)
         const consultasAnteriores = consultas.filter((c) => {
           if (c.pacienteId !== paciente.id || c.status !== "finalizada") {
             return false;
           }
-          // Parse da data no formato YYYY-MM-DD como data local
           const [anoConsulta, mesConsulta, diaConsulta] = c.data
             .split("-")
             .map(Number);
@@ -223,14 +203,12 @@ const DashboardAdmin = () => {
           pacientesConstantes.push(paciente.id);
         }
       } else {
-        // Verificar se é inativo (última consulta há mais de 6 meses)
         if (paciente.ultimaConsulta) {
           const ultimaConsulta = new Date(paciente.ultimaConsulta);
           if (ultimaConsulta < seisMesesAtras) {
             pacientesInativos.push(paciente.id);
           }
         } else {
-          // Se nunca teve consulta e não foi atendido no mês, considerar inativo
           pacientesInativos.push(paciente.id);
         }
       }
@@ -241,36 +219,75 @@ const DashboardAdmin = () => {
       constantes: pacientesConstantes.length,
       inativos: pacientesInativos.length,
       atendidosNoMes: pacientesAtendidosNoMes.size,
+      total: pacientes.length,
     };
   }, [consultasDoMes, pacientes, consultas, mesSelecionado]);
 
-  // Dados para gráfico de barras (semana do mês)
-  const dadosSemana = useMemo(() => {
-    const semanas: Record<number, { realizadas: number; canceladas: number }> =
-      {};
+  const profissionaisAtivos = useMemo(() => {
+    return profissionais.filter((p) => !p.arquivado).length;
+  }, [profissionais]);
 
-    consultasDoMes.forEach((consulta) => {
-      // Parse da data no formato YYYY-MM-DD para obter o dia
-      const [, , diaConsulta] = consulta.data.split("-").map(Number);
-      const semana = Math.ceil(diaConsulta / 7);
-      if (!semanas[semana]) {
-        semanas[semana] = { realizadas: 0, canceladas: 0 };
-      }
-      if (consulta.status === "finalizada") {
-        semanas[semana].realizadas++;
-      } else if (consulta.status === "cancelada") {
-        semanas[semana].canceladas++;
-      }
+  const consultasPorSemana = useMemo(() => {
+    const [ano, mes] = mesSelecionado.split("-").map(Number);
+    const inicioMes = startOfMonth(new Date(ano, mes - 1));
+    const fimMes = endOfMonth(new Date(ano, mes - 1));
+
+    const semanas = eachWeekOfInterval(
+      {
+        start: inicioMes,
+        end: fimMes,
+      },
+      { weekStartsOn: 1 }
+    );
+
+    return semanas.map((inicioSemana, index) => {
+      const fimSemana = endOfWeek(inicioSemana, { weekStartsOn: 1 });
+      const consultasDaSemana = consultas.filter((consulta) => {
+        const [anoConsulta, mesConsulta, diaConsulta] = consulta.data
+          .split("-")
+          .map(Number);
+        const dataConsulta = new Date(
+          anoConsulta,
+          mesConsulta - 1,
+          diaConsulta
+        );
+        return isWithinInterval(dataConsulta, {
+          start: inicioSemana,
+          end: fimSemana,
+        });
+      });
+
+      const realizadas = consultasDaSemana.filter(
+        (c) => c.status === "finalizada"
+      ).length;
+      const canceladas = consultasDaSemana.filter(
+        (c) => c.status === "cancelada"
+      ).length;
+
+      return {
+        semana: `Sem ${index + 1}`,
+        data: format(inicioSemana, "dd/MM", { locale: ptBR }),
+        realizadas,
+        canceladas,
+        total: realizadas + canceladas,
+      };
     });
+  }, [consultas, mesSelecionado]);
 
-    return Array.from({ length: 4 }, (_, i) => ({
-      semana: `Semana ${i + 1}`,
-      realizadas: semanas[i + 1]?.realizadas || 0,
-      canceladas: semanas[i + 1]?.canceladas || 0,
-    }));
-  }, [consultasDoMes]);
+  const mediaConsultasPorSemana = useMemo(() => {
+    if (consultasPorSemana.length === 0) return 0;
+    const total = consultasPorSemana.reduce((acc, s) => acc + s.total, 0);
+    return Math.round(total / consultasPorSemana.length);
+  }, [consultasPorSemana]);
 
-  // Gerar lista de meses para seleção (últimos 12 meses)
+  const itensEstoqueUrgencia = useMemo(() => {
+    return itensEstoque.filter((item) => item.status === "emergencia");
+  }, [itensEstoque]);
+
+  const itensEstoqueAtencao = useMemo(() => {
+    return itensEstoque.filter((item) => item.status === "atencao");
+  }, [itensEstoque]);
+
   const mesesDisponiveis = useMemo(() => {
     const hoje = new Date();
     const meses = eachMonthOfInterval({
@@ -297,9 +314,24 @@ const DashboardAdmin = () => {
         }}
       >
         <Typography variant="h5" fontWeight={500}>
-          Dashboard de Consultas
+          Dashboard Administrativo
         </Typography>
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            variant="contained"
+            startIcon={<EventIcon />}
+            onClick={() => navigate(ROUTES.agendar)}
+            sx={{ whiteSpace: "nowrap" }}
+          >
+            Agendamento
+          </Button>
           <MuiTooltip title="Regenerar dados de consultas">
             <IconButton
               onClick={handleRegenerarConsultas}
@@ -326,9 +358,44 @@ const DashboardAdmin = () => {
         </Box>
       </Box>
 
-      {/* Cards de métricas */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom variant="body2">
+                Total de Pacientes
+              </Typography>
+              <Typography variant="h4" color="primary">
+                {pacientesMetricas.total}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom variant="body2">
+                Profissionais Ativos
+              </Typography>
+              <Typography variant="h4" color="primary">
+                {profissionaisAtivos}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom variant="body2">
+                Média Consultas/Semana
+              </Typography>
+              <Typography variant="h4" color="primary">
+                {mediaConsultasPorSemana}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom variant="body2">
@@ -340,7 +407,10 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+      </Grid>
+
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom variant="body2">
@@ -352,7 +422,7 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom variant="body2">
@@ -364,7 +434,7 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography color="text.secondary" gutterBottom variant="body2">
@@ -376,31 +446,54 @@ const DashboardAdmin = () => {
             </CardContent>
           </Card>
         </Grid>
+        <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+          <Card sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography color="text.secondary" gutterBottom variant="body2">
+                Pacientes Atendidos
+              </Typography>
+              <Typography variant="h4" color="info.main">
+                {pacientesMetricas.atendidosNoMes}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
-      {/* Gráficos */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, lg: 6 }}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Consultas por Semana
               </Typography>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={dadosSemana}>
+                <LineChart data={consultasPorSemana}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="semana" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="realizadas" fill={theme.palette.primary.main} />
-                  <Bar dataKey="canceladas" fill={theme.palette.error.main} />
-                </BarChart>
+                  <Line
+                    type="monotone"
+                    dataKey="realizadas"
+                    stroke={theme.palette.primary.main}
+                    strokeWidth={2}
+                    name="Realizadas"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="canceladas"
+                    stroke={theme.palette.error.main}
+                    strokeWidth={2}
+                    name="Canceladas"
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 12, lg: 6 }}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -414,12 +507,6 @@ const DashboardAdmin = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      // label={({ name, value }) => {
-                      //   if (!name) return "";
-                      //   return `${name.substring(0, 15)}${
-                      //     name.length > 15 ? "..." : ""
-                      //   }: ${value}`;
-                      // }}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -454,53 +541,132 @@ const DashboardAdmin = () => {
         </Grid>
       </Grid>
 
-      {/* Métricas de pacientes */}
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Novos Pacientes
+              <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                Status de Estoque
               </Typography>
-              <Typography variant="h4" color="success.main">
-                {pacientesMetricas.novos}
-              </Typography>
+              {itensEstoqueUrgencia.length > 0 && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <ErrorIcon />
+                    <Typography variant="body2" fontWeight="bold">
+                      {itensEstoqueUrgencia.length} itens em emergência
+                    </Typography>
+                  </Box>
+                </Alert>
+              )}
+              {itensEstoqueAtencao.length > 0 && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <WarningIcon />
+                    <Typography variant="body2" fontWeight="bold">
+                      {itensEstoqueAtencao.length} itens precisam de atenção
+                    </Typography>
+                  </Box>
+                </Alert>
+              )}
+              {itensEstoqueUrgencia.length === 0 &&
+                itensEstoqueAtencao.length === 0 && (
+                  <Alert severity="success">
+                    Todos os itens estão em níveis normais
+                  </Alert>
+                )}
+              {itensEstoqueUrgencia.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Itens em Emergência:
+                  </Typography>
+                  <List dense>
+                    {itensEstoqueUrgencia.slice(0, 5).map((item) => (
+                      <ListItem key={item.id}>
+                        <ListItemText
+                          primary={item.nome}
+                          secondary={`Quantidade: ${item.quantidade} ${
+                            item.unidade || "un"
+                          }`}
+                        />
+                        <Chip
+                          label="Emergência"
+                          color="error"
+                          size="small"
+                          icon={<ErrorIcon />}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  {itensEstoqueUrgencia.length > 5 && (
+                    <Typography variant="caption" color="text.secondary">
+                      +{itensEstoqueUrgencia.length - 5} itens...
+                    </Typography>
+                  )}
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ height: "100%" }}>
             <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Pacientes Constantes
+              <Typography variant="h6" gutterBottom>
+                Métricas de Pacientes
               </Typography>
-              <Typography variant="h4" color="primary">
-                {pacientesMetricas.constantes}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <Card sx={{ height: "100%" }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Pacientes Inativos
-              </Typography>
-              <Typography variant="h4" color="warning.main">
-                {pacientesMetricas.inativos}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-          <Card sx={{ height: "100%" }}>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom variant="body2">
-                Pacientes Atendidos no Mês
-              </Typography>
-              <Typography variant="h4" color="info.main">
-                {pacientesMetricas.atendidosNoMes}
-              </Typography>
+              <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid size={{ xs: 6 }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{ p: 2, textAlign: "center", bgcolor: "success.light" }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      Novos Pacientes
+                    </Typography>
+                    <Typography variant="h5" color="success.main">
+                      {pacientesMetricas.novos}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{ p: 2, textAlign: "center", bgcolor: "primary.light" }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      Pacientes Constantes
+                    </Typography>
+                    <Typography variant="h5" color="primary.main">
+                      {pacientesMetricas.constantes}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{ p: 2, textAlign: "center", bgcolor: "warning.light" }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      Pacientes Inativos
+                    </Typography>
+                    <Typography variant="h5" color="warning.main">
+                      {pacientesMetricas.inativos}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid size={{ xs: 6 }}>
+                  <Paper
+                    variant="outlined"
+                    sx={{ p: 2, textAlign: "center", bgcolor: "info.light" }}
+                  >
+                    <Typography color="text.secondary" variant="body2">
+                      Atendidos no Mês
+                    </Typography>
+                    <Typography variant="h5" color="info.main">
+                      {pacientesMetricas.atendidosNoMes}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
