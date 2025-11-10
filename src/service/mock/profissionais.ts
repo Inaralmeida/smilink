@@ -1,7 +1,6 @@
 import type { TProfissional } from "../../domain/types/profissional";
 import { MOCK_USER } from "./user";
 
-// Lista de especialidades odontológicas
 const especialidades = [
   "Clínica Geral",
   "Ortodontia",
@@ -19,7 +18,6 @@ const especialidades = [
   "Ortopedia Funcional dos Maxilares",
 ];
 
-// Lista de biografias odontológicas
 const biografias = [
   "Cirurgião-dentista com mais de 10 anos de experiência em clínica geral. Especializado em tratamentos restauradores e prevenção odontológica. Atende pacientes de todas as idades com foco em saúde bucal integral.",
   "Formado em Odontologia pela USP, com especialização em Ortodontia. Experiente em tratamentos com aparelhos fixos e móveis, alinhadores transparentes e correção de má oclusão em crianças e adultos.",
@@ -31,7 +29,6 @@ const biografias = [
   "Cirurgião oral e bucomaxilofacial com experiência em extrações, cirurgias de terceiros molares, apicectomias e procedimentos cirúrgicos complexos. Certificado pelo Conselho Regional de Odontologia.",
 ];
 
-// Lista de cidades e estados brasileiros
 const cidadesEstados = [
   { city: "São Paulo", state: "SP" },
   { city: "Rio de Janeiro", state: "RJ" },
@@ -45,7 +42,6 @@ const cidadesEstados = [
   { city: "Campinas", state: "SP" },
 ];
 
-// Função para gerar CEP aleatório
 const gerarCEP = (): string => {
   const numeros = Array.from({ length: 8 }, () =>
     Math.floor(Math.random() * 10)
@@ -53,7 +49,6 @@ const gerarCEP = (): string => {
   return numeros;
 };
 
-// Função para gerar registro profissional aleatório
 const gerarRegistro = (): string => {
   const numeros = Array.from({ length: 6 }, () =>
     Math.floor(Math.random() * 10)
@@ -61,7 +56,6 @@ const gerarRegistro = (): string => {
   return `${numeros}`;
 };
 
-// Função para gerar CRM aleatório (formato: CRM-SP 123456)
 const gerarCRM = (): string => {
   const uf = ["SP", "RJ", "MG", "PR", "RS", "SC", "BA", "DF"][
     Math.floor(Math.random() * 8)
@@ -72,17 +66,15 @@ const gerarCRM = (): string => {
   return `CRM-${uf} ${numeros}`;
 };
 
-// Função para gerar telefone de SP (celular) no formato 119xxxx-xxxx
 const gerarTelefoneSP = (): string => {
-  const ddd = "11"; // DDD de São Paulo
-  const prefixo = "9"; // Celular sempre começa com 9
+  const ddd = "11";
+  const prefixo = "9";
   const numero = Array.from({ length: 8 }, () =>
     Math.floor(Math.random() * 10)
   ).join("");
   return `${ddd}${prefixo}${numero}`;
 };
 
-// Converter MOCK_USER profissionais para TProfissional
 const converterUsuariosParaProfissionais = (): TProfissional[] => {
   const usuariosProfissionais = MOCK_USER.filter(
     (user) => user.role === "profissional"
@@ -92,23 +84,15 @@ const converterUsuariosParaProfissionais = (): TProfissional[] => {
     const cidadeEstado =
       cidadesEstados[Math.floor(Math.random() * cidadesEstados.length)];
     const cep = gerarCEP();
-    const numEspecialidades = Math.floor(Math.random() * 3) + 1; // 1 a 3 especialidades
+    const numEspecialidades = Math.floor(Math.random() * 3) + 1;
     const especialidadesSelecionadas = especialidades
       .sort(() => Math.random() - 0.5)
       .slice(0, numEspecialidades);
     const bio = biografias[Math.floor(Math.random() * biografias.length)];
-
-    // CRO (Conselho Regional de Odontologia) - obrigatório para todos os dentistas
     const cro = gerarRegistro();
-
-    // CRM (Conselho Regional de Medicina) - para dentistas também
     const crm = gerarCRM();
-
-    // Ajustar email para @smilink
     const emailBase = user.email.split("@")[0];
     const emailProfissional = `${emailBase}@smilink.com`;
-
-    // Gerar telefone de SP
     const telefoneSP = gerarTelefoneSP();
 
     const profissional: TProfissional = {
@@ -125,8 +109,8 @@ const converterUsuariosParaProfissionais = (): TProfissional[] => {
       arquivado: false,
       especialidades: especialidadesSelecionadas,
       bio,
-      registro: cro, // CRO para odontologia
-      crm: crm, // CRM para dentistas
+      registro: cro,
+      crm: crm,
       telefone: telefoneSP,
       data_nascimento: user.dataNascimento.split("T")[0],
       CPF: user.cpf,
@@ -180,11 +164,9 @@ export const fetchProfissionais = async (): Promise<TProfissional[]> => {
   return profissionais.filter((p) => !p.arquivado).slice(0, 10);
 };
 
-// Função para buscar profissional por ID
 export const fetchProfissionalById = async (
   id: string
 ): Promise<TProfissional | null> => {
-  console.log("🔍 [fetchProfissionalById] Buscando profissional com ID:", id);
   await new Promise((resolve) => setTimeout(resolve, 300));
   const { storage, STORAGE_KEYS } = await import(
     "../../shared/utils/localStorage"
@@ -194,7 +176,6 @@ export const fetchProfissionalById = async (
     []
   );
 
-  // Combinar profissionais do storage com MOCK_PROFISSIONAIS para garantir que todos estejam disponíveis
   const todosProfissionais = [...profissionaisStorage];
   MOCK_PROFISSIONAIS.forEach((prof) => {
     if (!todosProfissionais.find((p) => p.id === prof.id)) {
@@ -202,44 +183,19 @@ export const fetchProfissionalById = async (
     }
   });
 
-  console.log(
-    "🔍 [fetchProfissionalById] Total de profissionais no storage:",
-    profissionaisStorage.length
-  );
-  console.log(
-    "🔍 [fetchProfissionalById] Total de profissionais (com MOCK):",
-    todosProfissionais.length
-  );
-  console.log(
-    "🔍 [fetchProfissionalById] IDs disponíveis:",
-    todosProfissionais.map((p) => p.id)
-  );
-
   const profissionalEncontrado =
     todosProfissionais.find((p) => p.id === id) || null;
-  console.log(
-    "🔍 [fetchProfissionalById] Profissional encontrado:",
-    profissionalEncontrado
-      ? `${profissionalEncontrado.nome} ${profissionalEncontrado.sobrenome}`
-      : "null"
-  );
 
-  // Se encontrou no MOCK mas não no storage, salvar no storage para próxima vez
   if (
     profissionalEncontrado &&
     !profissionaisStorage.find((p) => p.id === id)
   ) {
-    console.log(
-      "🔍 [fetchProfissionalById] Profissional encontrado no MOCK, salvando no storage..."
-    );
     profissionaisStorage.push(profissionalEncontrado);
     storage.set(STORAGE_KEYS.PROFISSIONAIS, profissionaisStorage);
   }
 
   return profissionalEncontrado;
 };
-
-// Função para criar profissional
 export const criarProfissional = async (
   profissional: Omit<TProfissional, "id">
 ): Promise<TProfissional> => {
@@ -264,7 +220,6 @@ export const criarProfissional = async (
   return novoProfissional;
 };
 
-// Função para atualizar profissional
 export const atualizarProfissional = async (
   id: string,
   dados: Partial<TProfissional>
@@ -291,7 +246,6 @@ export const atualizarProfissional = async (
   return profissionais[index];
 };
 
-// Função para arquivar profissional
 export const arquivarProfissional = async (id: string): Promise<void> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
   const { storage, STORAGE_KEYS } = await import(
