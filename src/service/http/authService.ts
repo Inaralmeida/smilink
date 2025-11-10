@@ -6,7 +6,6 @@ export const mockLogin = (role: "admin" | "paciente" = "admin") => {
   const userToLogin = MOCK_USER.find((user) => user.role === role);
   if (userToLogin) {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToLogin));
-    console.log(`Usuário '${userToLogin.nome}' logado como ${role}.`);
   }
 };
 

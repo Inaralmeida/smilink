@@ -4,14 +4,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import QRCode from "qrcode";
 
-// Receita padrão (sempre a mesma)
 const RECEITA_PADRAO = `Cetoprofeno 100mg - Tomar 1 comprimido de 8 em 8 horas por 7 dias
 Dipirona 500mg - Tomar 1 comprimido a cada 6 horas em caso de dor
 Dexametasona 4mg - Tomar 1 comprimido de 12 em 12 horas por 5 dias`;
 
-/**
- * Busca outro profissional para receita padrão (mockado)
- */
 const buscarOutroProfissionalParaReceita = async (
   excluirId: string
 ): Promise<TProfissional | null> => {
@@ -20,7 +16,6 @@ const buscarOutroProfissionalParaReceita = async (
       "../../service/mock/profissionais"
     );
     const profissionais = await fetchProfissionais();
-    // Buscar profissional diferente do que está na consulta
     const outroProfissional = profissionais.find((p) => p.id !== excluirId);
     return outroProfissional || profissionais[0] || null;
   } catch {
@@ -28,9 +23,6 @@ const buscarOutroProfissionalParaReceita = async (
   }
 };
 
-/**
- * Gera QR Code como data URL (base64)
- */
 const gerarQRCodeDataURL = async (texto: string): Promise<string> => {
   try {
     const dataURL = await QRCode.toDataURL(texto, {
@@ -43,15 +35,11 @@ const gerarQRCodeDataURL = async (texto: string): Promise<string> => {
     });
     return dataURL;
   } catch (error) {
-    console.error("Erro ao gerar QR Code:", error);
-    // Retornar uma imagem vazia em caso de erro
+    console.error("Falha ao gerar QR Code", error);
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
   }
 };
 
-/**
- * Gera dados para o QR Code da receita
- */
 const gerarDadosQRCodeReceita = (
   consulta: TConsulta,
   profissional: TProfissional
@@ -68,9 +56,6 @@ const gerarDadosQRCodeReceita = (
   return JSON.stringify(dados);
 };
 
-/**
- * Gera dados para o QR Code do atestado
- */
 const gerarDadosQRCodeAtestado = (
   consulta: TConsulta,
   profissional: TProfissional
@@ -88,25 +73,14 @@ const gerarDadosQRCodeAtestado = (
   return JSON.stringify(dados);
 };
 
-/**
- * Gera PDF de receita médica (mockado)
- * Usa window.print() como método principal, que funciona de forma mais confiável
- */
 export const gerarPDFReceita = async (
   consulta: TConsulta,
   profissional: TProfissional
 ): Promise<void> => {
-  console.log("📄 [gerarPDFReceita] Função chamada");
-  console.log("📄 [gerarPDFReceita] Consulta:", consulta);
-  console.log("📄 [gerarPDFReceita] Profissional:", profissional);
-
-  // Se houver receita customizada, usar o profissional da consulta
-  // Se não houver, usar receita padrão com outro médico
   let profissionalReceita = profissional;
   let receitaTexto = consulta.receita;
 
   if (!receitaTexto) {
-    // Usar receita padrão com outro médico
     receitaTexto = RECEITA_PADRAO;
     const outroProf = await buscarOutroProfissionalParaReceita(profissional.id);
     if (outroProf) {
@@ -120,11 +94,9 @@ export const gerarPDFReceita = async (
       })
     : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 
-  // Gerar QR Code
   const dadosQRCode = gerarDadosQRCodeReceita(consulta, profissionalReceita);
   const qrCodeDataURL = await gerarQRCodeDataURL(dadosQRCode);
 
-  // Criar HTML do PDF
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -271,18 +243,10 @@ export const gerarPDFReceita = async (
   printWindow.document.close();
 };
 
-/**
- * Gera PDF de atestado médico (mockado)
- * Usa window.print() como método principal, que funciona de forma mais confiável
- */
 export const gerarPDFAtestado = async (
   consulta: TConsulta,
   profissional: TProfissional
 ): Promise<void> => {
-  console.log("🏥 [gerarPDFAtestado] Função chamada");
-  console.log("🏥 [gerarPDFAtestado] Consulta:", consulta);
-  console.log("🏥 [gerarPDFAtestado] Profissional:", profissional);
-
   if (!consulta.atestado?.emitido) {
     throw new Error("Atestado não foi emitido para esta consulta");
   }
@@ -298,11 +262,9 @@ export const gerarPDFAtestado = async (
       })
     : format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 
-  // Gerar QR Code
   const dadosQRCode = gerarDadosQRCodeAtestado(consulta, profissional);
   const qrCodeDataURL = await gerarQRCodeDataURL(dadosQRCode);
 
-  // Criar HTML do PDF
   const htmlContent = `
     <!DOCTYPE html>
     <html>

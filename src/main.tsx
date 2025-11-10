@@ -6,28 +6,18 @@ import {
   regenerarConsultas,
 } from "./shared/utils/localStorage";
 
-// Inicializar localStorage com dados mock
-// SEMPRE regenerar consultas para garantir dados atualizados do MOC
 (async () => {
   try {
     await initializeLocalStorage();
-    // Aguardar um pouco para garantir que tudo foi inicializado
     await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log("🔄 Forçando regeneração de consultas...");
     await regenerarConsultas();
-    console.log("✅ Consultas regeneradas com sucesso!");
-
-    // Garantir consulta de demonstração sempre ativa
     const { garantirConsultaDemonstracao } = await import(
       "./service/mock/consultas"
     );
     await garantirConsultaDemonstracao();
-    console.log("✅ Consulta de demonstração verificada!");
-
-    // Disparar evento para componentes recarregarem
     window.dispatchEvent(new Event("consultas-regeneradas"));
   } catch (error) {
-    console.error("❌ Erro ao inicializar/regenerar:", error);
+    console.error(error);
   }
 })();
 
