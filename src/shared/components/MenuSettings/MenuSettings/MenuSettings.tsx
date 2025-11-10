@@ -8,14 +8,17 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import { useNavigation } from "../../../../application/Hooks/useNavigation";
 import { clearToken, removeUser } from "../../../../service/http/storage";
 import IconLink from "../../IconLink/IconLink";
 import { useAuth } from "../../../../application/context/AuthContext";
+import { ROUTES } from "../../../../domain/constants/Routes";
 
 const MenuSettings = () => {
   const { handleSetAuth } = useAuth();
   const { navigationToLogin } = useNavigation();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -23,6 +26,11 @@ const MenuSettings = () => {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handlePerfil = () => {
+    navigate(ROUTES.perfil);
+    handleClose();
   };
 
   const handleLogout = () => {
@@ -84,20 +92,10 @@ const MenuSettings = () => {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={handlePerfil}>
           <Avatar /> Perfil
         </MenuItem>
-        <MenuItem onClick={handleClose}>
-          <Avatar />
-          Minha Conta
-        </MenuItem>
         <Divider />
-        <MenuItem onClick={handleClose}>
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Configurações
-        </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />

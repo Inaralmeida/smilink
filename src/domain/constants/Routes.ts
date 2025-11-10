@@ -16,5 +16,6 @@ export const ROUTES = {
   pacientes: "/pacientes",
   profissionais: "/profissionais",
   estoque: "/estoque",
+  perfil: "/perfil",
   notFound: "*",
 };

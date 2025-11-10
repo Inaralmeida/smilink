@@ -10,6 +10,7 @@ import {
   Agenda,
   Consultas,
   Estoque,
+  Perfil,
 } from "../../pages";
 import { Layout } from "../components";
 import { theme } from "../ui/style/theme";
@@ -41,6 +42,7 @@ const Routes = () => {
                     element={<Consultas />}
                   />
                   <Route path={ROUTES.estoque} element={<Estoque />} />
+                  <Route path={ROUTES.perfil} element={<Perfil />} />
                   <Route
                     path="*"
                     element={<Typography variant="h1">404</Typography>}
