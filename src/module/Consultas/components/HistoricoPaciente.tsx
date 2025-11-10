@@ -16,6 +16,11 @@ import {
   Tab,
   CircularProgress,
   IconButton,
+  useMediaQuery,
+  useTheme,
+  Stack,
+  Divider,
+  Button,
 } from "@mui/material";
 import { useConsultasPorPaciente } from "../hooks/useConsultas";
 import { useAuth } from "../../../application/context/AuthContext";
@@ -28,6 +33,8 @@ import { ptBR } from "date-fns/locale";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 const HistoricoPaciente = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user } = useAuth();
   const [abaAtiva, setAbaAtiva] = useState(0);
   const [agendamentosFuturos, setAgendamentosFuturos] = useState<
@@ -42,8 +49,8 @@ const HistoricoPaciente = () => {
     useConsultasPorPaciente(user?.id || "");
 
   // Separar consultas em passadas e futuras
-  const agora = new Date();
   const { consultasPassadas, consultasFuturas } = useMemo(() => {
+    const agora = new Date();
     const passadas: TConsulta[] = [];
     const futuras: TConsulta[] = [];
 
@@ -125,7 +132,7 @@ const HistoricoPaciente = () => {
 
         setAgendamentosFuturos(futuros);
       } catch {
-          console.error("Erro ao carregar agendamentos futuros", error);
+        // Ignorar erro
       } finally {
         setLoadingAgendamentos(false);
       }
@@ -226,9 +233,124 @@ const HistoricoPaciente = () => {
                 </Typography>
               </CardContent>
             </Card>
+          ) : isMobile ? (
+            <Box
+              sx={{
+                maxHeight: "calc(100vh - 400px)",
+                overflowY: "auto",
+                pr: 1,
+              }}
+            >
+              <Stack spacing={2}>
+                {consultasPassadas.map((consulta) => {
+                  const dataConsulta = new Date(
+                    `${consulta.data}T${consulta.horario}`
+                  );
+                  const dataFormatada = format(dataConsulta, "dd/MM/yyyy", {
+                    locale: ptBR,
+                  });
+
+                  return (
+                    <Card key={consulta.id} sx={{ width: "100%" }}>
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                              {consulta.profissionalNome}{" "}
+                              {consulta.profissionalSobrenome}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Data:</strong> {dataFormatada} às{" "}
+                              {consulta.horario}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Procedimento:</strong>{" "}
+                              {consulta.procedimentoPrincipal}
+                              {consulta.procedimentosRealizados.length > 1 && (
+                                <span>
+                                  {" "}
+                                  (+{" "}
+                                  {consulta.procedimentosRealizados.length -
+                                    1}{" "}
+                                  procedimento(s))
+                                </span>
+                              )}
+                            </Typography>
+                            {consulta.examesSolicitados.length > 0 && (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                gutterBottom
+                              >
+                                <strong>Exames:</strong>{" "}
+                                {consulta.examesSolicitados
+                                  .slice(0, 2)
+                                  .join(", ")}
+                                {consulta.examesSolicitados.length > 2 &&
+                                  ` (+${
+                                    consulta.examesSolicitados.length - 2
+                                  })`}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                        <Divider sx={{ my: 2 }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 1,
+                            mb: 2,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Chip
+                            label={getStatusLabel(consulta.status)}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            color={getStatusColor(consulta.status) as any}
+                            size="small"
+                          />
+                        </Box>
+                        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => handleVerDetalhes(consulta)}
+                          >
+                            Ver Detalhes
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </Stack>
+            </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table>
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: "calc(100vh - 400px)",
+                overflowY: "auto",
+              }}
+            >
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell>Data</TableCell>
@@ -346,9 +468,170 @@ const HistoricoPaciente = () => {
                 </Typography>
               </CardContent>
             </Card>
+          ) : isMobile ? (
+            <Box
+              sx={{
+                maxHeight: "calc(100vh - 400px)",
+                overflowY: "auto",
+                pr: 1,
+              }}
+            >
+              <Stack spacing={2}>
+                {/* Consultas futuras */}
+                {consultasFuturas.map((consulta) => {
+                  const dataConsulta = new Date(
+                    `${consulta.data}T${consulta.horario}`
+                  );
+                  const dataFormatada = format(dataConsulta, "dd/MM/yyyy", {
+                    locale: ptBR,
+                  });
+
+                  return (
+                    <Card key={consulta.id} sx={{ width: "100%" }}>
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                              {consulta.profissionalNome}{" "}
+                              {consulta.profissionalSobrenome}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Data:</strong> {dataFormatada} às{" "}
+                              {consulta.horario}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Procedimento:</strong>{" "}
+                              {consulta.procedimentoPrincipal}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider sx={{ my: 2 }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 1,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Chip
+                            label={getStatusLabel(consulta.status)}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            color={getStatusColor(consulta.status) as any}
+                            size="small"
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {/* Agendamentos futuros */}
+                {agendamentosFuturos.map((agendamento) => {
+                  let dataAgendamento: Date;
+                  if (agendamento.data.includes("T")) {
+                    dataAgendamento = new Date(agendamento.data);
+                  } else if (agendamento.horario) {
+                    const [ano, mes, dia] = agendamento.data
+                      .split("-")
+                      .map(Number);
+                    const [hora, minuto] = agendamento.horario
+                      .split(":")
+                      .map(Number);
+                    dataAgendamento = new Date(
+                      ano,
+                      mes - 1,
+                      dia,
+                      hora || 0,
+                      minuto || 0,
+                      0
+                    );
+                  } else {
+                    dataAgendamento = new Date(agendamento.data);
+                  }
+                  const dataFormatada = format(dataAgendamento, "dd/MM/yyyy", {
+                    locale: ptBR,
+                  });
+                  const horarioFormatado =
+                    agendamento.horario ||
+                    format(dataAgendamento, "HH:mm", {
+                      locale: ptBR,
+                    });
+
+                  return (
+                    <Card key={agendamento.id} sx={{ width: "100%" }}>
+                      <CardContent>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" gutterBottom>
+                              {agendamento.profissionalNome}{" "}
+                              {agendamento.profissionalSobrenome}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Data:</strong> {dataFormatada} às{" "}
+                              {horarioFormatado}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              gutterBottom
+                            >
+                              <strong>Procedimento:</strong>{" "}
+                              {agendamento.procedimento}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Divider sx={{ my: 2 }} />
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 1,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Chip label="Agendada" color="info" size="small" />
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </Stack>
+            </Box>
           ) : (
-            <TableContainer component={Paper}>
-              <Table>
+            <TableContainer
+              component={Paper}
+              sx={{
+                maxHeight: "calc(100vh - 400px)",
+                overflowY: "auto",
+              }}
+            >
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
                     <TableCell>Data</TableCell>
@@ -394,9 +677,27 @@ const HistoricoPaciente = () => {
                   })}
                   {/* Agendamentos futuros */}
                   {agendamentosFuturos.map((agendamento) => {
-                    const dataAgendamento = new Date(
-                      `${agendamento.data}T${agendamento.horario}`
-                    );
+                    let dataAgendamento: Date;
+                    if (agendamento.data.includes("T")) {
+                      dataAgendamento = new Date(agendamento.data);
+                    } else if (agendamento.horario) {
+                      const [ano, mes, dia] = agendamento.data
+                        .split("-")
+                        .map(Number);
+                      const [hora, minuto] = agendamento.horario
+                        .split(":")
+                        .map(Number);
+                      dataAgendamento = new Date(
+                        ano,
+                        mes - 1,
+                        dia,
+                        hora || 0,
+                        minuto || 0,
+                        0
+                      );
+                    } else {
+                      dataAgendamento = new Date(agendamento.data);
+                    }
                     const dataFormatada = format(
                       dataAgendamento,
                       "dd/MM/yyyy",
@@ -404,11 +705,16 @@ const HistoricoPaciente = () => {
                         locale: ptBR,
                       }
                     );
+                    const horarioFormatado =
+                      agendamento.horario ||
+                      format(dataAgendamento, "HH:mm", {
+                        locale: ptBR,
+                      });
 
                     return (
                       <TableRow key={agendamento.id} hover>
                         <TableCell>{dataFormatada}</TableCell>
-                        <TableCell>{agendamento.horario}</TableCell>
+                        <TableCell>{horarioFormatado}</TableCell>
                         <TableCell>
                           {agendamento.profissionalNome}{" "}
                           {agendamento.profissionalSobrenome}
