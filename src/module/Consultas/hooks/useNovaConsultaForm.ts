@@ -9,6 +9,11 @@ import {
   fetchProfissionais,
   type AgendaProfissional,
 } from "../../../service/mock/agendas";
+import {
+  criarAgendamento,
+  cancelarAgendamento,
+} from "../../../service/mock/agendamentos";
+import { DURACAO_POR_PROCEDIMENTO } from "../../../service/mock/agendamentos";
 
 // Interface do Formulário
 interface IFormInputs {
@@ -20,12 +25,29 @@ interface IFormInputs {
   observacoes: string;
 }
 
+// Mapear códigos de procedimento para nomes completos
+const mapearCodigoParaProcedimento = (codigo: string): string => {
+  const mapeamento: Record<string, string> = {
+    AVALIACAO: "Avaliação Inicial",
+    LIMPEZA: "Limpeza e Profilaxia",
+    MANUTENCAO: "Manutenção de Aparelho",
+    RESTAURACAO: "Restauração",
+  };
+  return mapeamento[codigo] || "Consulta de Rotina";
+};
+
 export const useNovaConsultaForm = ({
   onCloseModal,
   pacientePreSelecionado,
+  profissionalIdPreSelecionado,
+  procedimentoPreSelecionado,
+  agendamentoAntigoId,
 }: {
   onCloseModal: () => void;
   pacientePreSelecionado?: TPaciente | null;
+  profissionalIdPreSelecionado?: string;
+  procedimentoPreSelecionado?: string;
+  agendamentoAntigoId?: string;
 }) => {
   const { role, user } = useAuth();
 
@@ -42,8 +64,8 @@ export const useNovaConsultaForm = ({
       pacienteId:
         pacientePreSelecionado?.id ||
         (role === "paciente" ? user?.id || "" : ""),
-      profissionalId: "",
-      procedimento: "AVALIACAO",
+      profissionalId: profissionalIdPreSelecionado || "",
+      procedimento: procedimentoPreSelecionado || "AVALIACAO",
       data: "",
       horario: "",
       observacoes: "",
@@ -55,6 +77,27 @@ export const useNovaConsultaForm = ({
       setValue("pacienteId", pacientePreSelecionado.id);
     }
   }, [pacientePreSelecionado, setValue]);
+
+  useEffect(() => {
+    if (profissionalIdPreSelecionado) {
+      setValue("profissionalId", profissionalIdPreSelecionado);
+      // Carregar agenda do profissional pré-selecionado
+      setLoadingAgenda(true);
+      setAgenda([]);
+      resetField("data");
+      resetField("horario");
+      fetchAgenda(profissionalIdPreSelecionado).then((data) => {
+        setAgenda(data);
+        setLoadingAgenda(false);
+      });
+    }
+  }, [profissionalIdPreSelecionado, setValue, resetField]);
+
+  useEffect(() => {
+    if (procedimentoPreSelecionado) {
+      setValue("procedimento", procedimentoPreSelecionado);
+    }
+  }, [procedimentoPreSelecionado, setValue]);
 
   const [pacientes, setPacientes] = useState<TUserProps[]>([]);
   const [profissionais, setProfissionais] = useState<TUserProps[]>([]);
@@ -101,16 +144,69 @@ export const useNovaConsultaForm = ({
   }, [profissionalIdSelecionado, resetField]);
 
   const onSubmit: SubmitHandler<IFormInputs> = async (data) => {
-    await new Promise((res) => setTimeout(res, 1000));
-    console.log("DADOS AGENDADOS:", data);
-    setToastOpen(true);
+    try {
+      // Buscar dados do profissional e paciente
+      const profissional = profissionais.find(
+        (p) => p.id === data.profissionalId
+      );
+      const pacienteId =
+        data.pacienteId || (role === "paciente" ? user?.id : "");
+      const paciente =
+        role === "admin"
+          ? pacientes.find((p) => p.id === data.pacienteId)
+          : user;
 
-    resetField("profissionalId");
-    resetField("data");
-    resetField("horario");
-    resetField("observacoes");
-    onCloseModal();
-    if (role === "admin") resetField("pacienteId");
+      if (!profissional || !paciente || !pacienteId) {
+        throw new Error("Dados incompletos para criar agendamento");
+      }
+
+      // Mapear código do procedimento para nome completo
+      const procedimentoNome = mapearCodigoParaProcedimento(data.procedimento);
+
+      // Obter duração do procedimento
+      const duracao = DURACAO_POR_PROCEDIMENTO[procedimentoNome] || 30;
+
+      // Criar novo agendamento
+      await criarAgendamento({
+        profissionalId: profissional.id,
+        profissionalNome: profissional.nome,
+        profissionalSobrenome: profissional.sobrenome,
+        pacienteId: pacienteId,
+        pacienteNome: paciente.nome,
+        pacienteSobrenome: paciente.sobrenome,
+        data: data.data,
+        horario: data.horario,
+        procedimento: procedimentoNome,
+        duracao: duracao,
+        status: "agendado",
+        observacoes: data.observacoes || undefined,
+      });
+
+      // Se for reagendamento, cancelar agendamento antigo
+      if (agendamentoAntigoId) {
+        await cancelarAgendamento(agendamentoAntigoId);
+      }
+
+      setToastOpen(true);
+
+      // Limpar campos
+      resetField("profissionalId");
+      resetField("data");
+      resetField("horario");
+      resetField("observacoes");
+      if (role === "admin") resetField("pacienteId");
+
+      // Fechar modal após um pequeno delay para mostrar o toast
+      setTimeout(() => {
+        onCloseModal();
+      }, 1500);
+    } catch (error) {
+      console.error("Erro ao criar agendamento:", error);
+      // Mostrar erro ao usuário (pode ser melhorado com um toast de erro)
+      alert(
+        error instanceof Error ? error.message : "Erro ao criar agendamento"
+      );
+    }
   };
 
   const handleToastClose = () => {

@@ -6,12 +6,20 @@ type ModalNovaConsultaProps = {
   open: boolean;
   onClose: () => void;
   pacientePreSelecionado?: TPaciente | null;
+  profissionalIdPreSelecionado?: string;
+  procedimentoPreSelecionado?: string;
+  titulo?: string;
+  agendamentoAntigoId?: string;
 };
 
 const ModalNovaConsulta = ({
   open,
   onClose,
   pacientePreSelecionado,
+  profissionalIdPreSelecionado,
+  procedimentoPreSelecionado,
+  titulo,
+  agendamentoAntigoId,
 }: ModalNovaConsultaProps) => {
   return (
     <Modal
@@ -30,6 +38,10 @@ const ModalNovaConsulta = ({
         <NovaConsulta
           onCloseModal={onClose}
           pacientePreSelecionado={pacientePreSelecionado}
+          profissionalIdPreSelecionado={profissionalIdPreSelecionado}
+          procedimentoPreSelecionado={procedimentoPreSelecionado}
+          titulo={titulo}
+          agendamentoAntigoId={agendamentoAntigoId}
         />
       </Box>
     </Modal>

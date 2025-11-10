@@ -18,11 +18,19 @@ import SeletorDisponibilidade from "./components/SeletorDisponibilidade";
 type NovaConsultaProps = {
   onCloseModal: () => void;
   pacientePreSelecionado?: TPaciente | null;
+  profissionalIdPreSelecionado?: string;
+  procedimentoPreSelecionado?: string;
+  titulo?: string;
+  agendamentoAntigoId?: string;
 };
 
 const NovaConsulta = ({
   onCloseModal,
   pacientePreSelecionado,
+  profissionalIdPreSelecionado,
+  procedimentoPreSelecionado,
+  titulo = "Nova consulta",
+  agendamentoAntigoId,
 }: NovaConsultaProps) => {
   const {
     control,
@@ -42,7 +50,13 @@ const NovaConsulta = ({
     toastOpen,
     handleToastClose,
     textFieldSx,
-  } = useNovaConsultaForm({ onCloseModal, pacientePreSelecionado });
+  } = useNovaConsultaForm({
+    onCloseModal,
+    pacientePreSelecionado,
+    profissionalIdPreSelecionado,
+    procedimentoPreSelecionado,
+    agendamentoAntigoId,
+  });
 
   if (!user) {
     return <Typography>Erro: Usuário não autenticado.</Typography>;
@@ -61,7 +75,7 @@ const NovaConsulta = ({
       component="form"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <Typography variant="h4">Nova consulta</Typography>
+      <Typography variant="h4">{titulo}</Typography>
 
       <Grid container spacing={4}>
         {role === "admin" && (
@@ -132,7 +146,9 @@ const NovaConsulta = ({
                 label="Profissional"
                 error={!!error}
                 helperText={error?.message}
-                disabled={loadingProfissionais}
+                disabled={
+                  loadingProfissionais || !!profissionalIdPreSelecionado
+                }
                 InputProps={{
                   endAdornment: loadingProfissionais && (
                     <CircularProgress size={20} />
@@ -168,9 +184,10 @@ const NovaConsulta = ({
                 label="Procedimento"
                 error={!!error}
                 helperText={error?.message}
+                disabled={!!procedimentoPreSelecionado}
               >
                 <MenuItem value="AVALIACAO">Avaliação</MenuItem>
-                <MenuItem value="LIMPEZA">Limpeza</MenuItem>
+                <MenuItem value="LIMPEZA">Limpeza e Profilaxia</MenuItem>
                 <MenuItem value="MANUTENCAO">Manutenção de Aparelho</MenuItem>
                 <MenuItem value="RESTAURACAO">Restauração</MenuItem>
               </TextField>
