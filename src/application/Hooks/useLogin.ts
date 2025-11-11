@@ -45,13 +45,9 @@ const useLogin = () => {
         setLoading(false);
         return;
       }
-      // Atualizar o usuário no contexto após salvar no localStorage
-      // Isso também atualiza isAuth para true
       updateUser();
-      // Usar setTimeout para garantir que o React processe a atualização do estado
-      // antes da navegação
       setTimeout(() => {
-        navigate(`${ROUTES.home}/${response.user?.role}`);
+        navigate(ROUTES.home);
         clearErrors();
         setLoading(false);
       }, 0);
