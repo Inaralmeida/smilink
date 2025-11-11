@@ -107,7 +107,10 @@ const DashboardPaciente = () => {
   // Carregar dados
   useEffect(() => {
     const carregarDados = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       try {

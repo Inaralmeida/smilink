@@ -16,7 +16,7 @@ interface TLoginForm {
 const useLogin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { generateToken, handleSetAuth } = useAuth();
+  const { generateToken, updateUser } = useAuth();
 
   const {
     register,
@@ -27,13 +27,6 @@ const useLogin = () => {
     formState: { errors },
   } = useForm<TLoginForm>();
 
-  const handleAuthentication = () => {
-    const token = generateToken();
-    setToken(token);
-    handleSetAuth(true);
-    return token;
-  };
-
   const handleLogin = (data: any) => {
     const { email, password } = data;
 
@@ -43,12 +36,21 @@ const useLogin = () => {
 
     if (response.type !== "success") {
       setError(response.type, { message: response.message });
+      setLoading(false);
     } else {
-      const token = handleAuthentication();
+      const token = generateToken();
+      setToken(token);
       setRole(response.user?.role || "paciente");
-      if (!token) return;
-      navigate(`${ROUTES.home}/${response.user?.role}`);
-      clearErrors();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      updateUser();
+      setTimeout(() => {
+        navigate(ROUTES.home);
+        clearErrors();
+        setLoading(false);
+      }, 0);
     }
   };
 

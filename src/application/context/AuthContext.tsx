@@ -13,8 +13,9 @@ interface AuthContextProps {
   isAuth: boolean;
   user: TUserProps | null;
   role: string | null;
-  loading: boolean; // 1. ADICIONE O ESTADO DE LOADING
+  loading: boolean;
   handleSetAuth: (auth: boolean) => void;
+  updateUser: () => void;
   generateToken: () => string;
 }
 
@@ -27,6 +28,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleSetAuth = (auth: boolean) => setIsAuth(auth);
   const generateToken = () => crypto.randomUUID();
+
+  const updateUser = () => {
+    const currentUser = getUser();
+    if (currentUser) {
+      setUser(currentUser);
+      setIsAuth(true);
+    } else {
+      setUser(null);
+      setIsAuth(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -55,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: user?.role || null,
         loading,
         handleSetAuth,
+        updateUser,
         generateToken,
       }}
     >

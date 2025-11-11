@@ -15,7 +15,7 @@ import { useAuth } from "../../../../application/context/AuthContext";
 import { ROUTES } from "../../../../domain/constants/Routes";
 
 const MenuSettings = () => {
-  const { handleSetAuth } = useAuth();
+  const { updateUser } = useAuth();
   const { navigationToLogin } = useNavigation();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -33,9 +33,9 @@ const MenuSettings = () => {
   };
 
   const handleLogout = () => {
-    handleSetAuth(false);
     removeUser();
     clearToken();
+    updateUser();
     navigationToLogin();
     handleClose();
   };
